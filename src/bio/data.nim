@@ -15,7 +15,7 @@ const dnaValuesAmbiguous: Table[char, string] =
    'V': "ACG", 'H': "ACT", 'D': "AGT", 'B': "CGT",
    'X': "GATC", 'N': "GATC"}.toTable
 
-const dnaAmbiguousComplement: Table[char, char] =
+const dnaAmbiguousComplement*: Table[char, char] =
   {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A',
    'M': 'K', 'R': 'Y', 'W': 'W', 'S': 'S',
    'Y': 'R', 'K': 'M', 'V': 'B', 'H': 'D',

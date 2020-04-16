@@ -1,3 +1,5 @@
 biopython-1.76/
 nimcache/
 testresults*
+
+tests/test_seqs

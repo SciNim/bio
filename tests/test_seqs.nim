@@ -1,5 +1,6 @@
 import os
 import posix_utils
+import strformat
 import strutils
 import unittest
 
@@ -20,6 +21,10 @@ suite "Test Sequence operation":
     let genericSequence: Sequence = Sequence(chain: "GENERIC")
     check $genericSequence == "Sequence: GENERIC"
     check genericSequence.class == ""
+
+  test "Echo truncates very long sequences":
+    let s: Sequence = Sequence(chain: 'A'.repeat(200))
+    check $s == &"Sequence: {'A'.repeat(60)}…"
 
   test "DNA objects construction":
     check dnaT of Dna

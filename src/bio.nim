@@ -34,7 +34,17 @@ proc initProtein*(chain: string): Protein =
   Protein(chain: chain, class: "Protein")
 
 proc `$`*(s: Sequence): string =
-  if s.class == "": &"Sequence: {s.chain}" else: &"{s.class}: {s.chain}"
+  ## Sequence representation is limited to "Class + 60 chars" of sequence
+  ##  If you need the whole sequence, access Sequence.chain directly
+  let limit: int = 59
+  var e: string
+  let reprChain: string = s.chain[.. min(s.chain.len - 1, limit)]
+  if s.chain.len > limit:
+    e = "…"  # This cannot be a char because is over 1 byte
+  if s.class == "":
+    &"Sequence: {reprChain}{e}"
+  else:
+    &"{s.class}: {reprChain}{e}"
 
 proc `?=`*(a, b: Sequence): bool =
   (a.chain == b.chain) and (a.class == b.class)

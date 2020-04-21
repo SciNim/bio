@@ -34,7 +34,7 @@ proc initProtein*(chain: string): Protein =
   Protein(chain: chain, class: "Protein")
 
 proc `$`*(s: Sequence): string =
-  &"{s.class}: {s.chain}"
+  if s.class == "": &"Sequence: {s.chain}" else: &"{s.class}: {s.chain}"
 
 proc `?=`*(a, b: Sequence): bool =
   (a.chain == b.chain) and (a.class == b.class)

@@ -17,6 +17,9 @@ suite "Test Sequence operation":
     check $dnaT == "DNA: ACGTGGGGT"
     check $rnaT == "RNA: ACGUGGGGU"
     check $proteinT == "Protein: TWG"
+    let genericSequence: Sequence = Sequence(chain: "GENERIC")
+    check $genericSequence == "Sequence: GENERIC"
+    check genericSequence.class == ""
 
   test "DNA objects construction":
     check dnaT of Dna

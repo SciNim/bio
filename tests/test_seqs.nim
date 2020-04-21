@@ -29,6 +29,7 @@ suite "Test Seq operation":
   #test "DNA transcription":
   #  fail "TDB"
   #
+
 suite "Test SeqRecord operation":
   setup:
     var dna = Seq(chain: "ACGTGGGGT", class: "DNA")

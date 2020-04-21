@@ -20,15 +20,15 @@ proc `==`*(a, b: Dna): bool =
   a.chain == b.chain
 
 proc write*(record: SeqRecord, fHandler: File, kind: string) =
-  #kind is a string as in "fasta", to support different formats
+  # TODO kind is a string as in "fasta", to support different formats
   const wrapSize: int = 60
-  fHandler.write(">", record.name, "\n")
-  var currentLen: int
-  for i in 0 .. (record.record.chain.len div wrapSize):
-    currentLen = min(wrapSize, record.record.chain[(i * wrapSize) .. ^1].len) - 1
-    fHandler.write(
-      record.record.chain[(i * wrapSize) .. ((i * wrapSize) + currentLen)])
-    fHandler.write("\n")
+  fHandler.write(">", record.name)
+
+  for i, base in record.record.chain.pairs:
+    if i mod wrapSize == 0:
+      fHandler.write("\n")
+    fHandler.write(base)
+  fHandler.write("\n")
   fHandler.flushFile
 
 proc write*(record: SeqRecord, fName, kind: string) =

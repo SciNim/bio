@@ -6,14 +6,14 @@ import unittest
 import bio
 
 
-suite "Test Seq operation":
+suite "Test Sequence operation":
   setup:
-    var dna = Seq(chain: "ACGTGGGGT", class: "DNA")
+    var dna = Sequence(chain: "ACGTGGGGT", class: "DNA")
     let dnaT: Dna = initDna("ACGTGGGGT")
 
   test "DNA objects construction":
     check dnaT of Dna
-    check dnaT of Seq
+    check dnaT of Sequence
 
     check dnaT.class == "DNA"
 
@@ -30,10 +30,10 @@ suite "Test Seq operation":
   #  fail "TDB"
   #
 
-suite "Test SeqRecord operation":
+suite "Test SequenceRecord operation":
   setup:
-    var dna = Seq(chain: "ACGTGGGGT", class: "DNA")
-    var dnaRecord = SeqRecord(record: dna, name: "Sample")
+    var dna = Sequence(chain: "ACGTGGGGT", class: "DNA")
+    var dnaRecord = SequenceRecord(record: dna, name: "Sample")
     var tmpOutput: (string, File) = mkstemp("tests/file_")
 
   teardown:

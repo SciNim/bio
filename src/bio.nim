@@ -3,14 +3,14 @@ import tables
 import bio/data
 
 type
-  Seq* = ref object of RootObj
+  Sequence* = ref object of RootObj
     chain*, class*: string
 
-  SeqRecord* = ref object of RootObj
+  SequenceRecord* = ref object of RootObj
     name*: string
-    record*: Seq
+    record*: Sequence
 
-  Dna* = ref object of Seq
+  Dna* = ref object of Sequence
 
 proc initDna*(chain: string): Dna =
   ## Initializes a new Dna object
@@ -19,7 +19,7 @@ proc initDna*(chain: string): Dna =
 proc `==`*(a, b: Dna): bool =
   a.chain == b.chain
 
-proc write*(record: SeqRecord, fHandler: File, kind: string) =
+proc write*(record: SequenceRecord, fHandler: File, kind: string) =
   # TODO kind is a string as in "fasta", to support different formats
   const wrapSize: int = 60
   fHandler.write(">", record.name)
@@ -31,7 +31,7 @@ proc write*(record: SeqRecord, fHandler: File, kind: string) =
   fHandler.write("\n")
   fHandler.flushFile
 
-proc write*(record: SeqRecord, fName, kind: string) =
+proc write*(record: SequenceRecord, fName, kind: string) =
   let fHandler: File = open(fName, fmWrite)
   defer: fHandler.close()
 

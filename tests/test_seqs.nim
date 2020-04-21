@@ -10,6 +10,13 @@ suite "Test Sequence operation":
   setup:
     var dna = Sequence(chain: "ACGTGGGGT", class: "DNA")
     let dnaT: Dna = initDna("ACGTGGGGT")
+    let rnaT: Rna = initRna("ACGUGGGGU")
+    let proteinT: Protein = initProtein("TWG")
+
+  test "Echo for the objects":
+    check $dnaT == "DNA: ACGTGGGGT"
+    check $rnaT == "RNA: ACGUGGGGU"
+    check $proteinT == "Protein: TWG"
 
   test "DNA objects construction":
     check dnaT of Dna
@@ -17,18 +24,53 @@ suite "Test Sequence operation":
 
     check dnaT.class == "DNA"
 
+  test "RNA objects construction":
+    check rnaT of Rna
+    check rnaT of Sequence
+
+    check rnaT.class == "RNA"
+
+  test "Protein objects construction":
+    check proteinT of Protein
+    check proteinT of Sequence
+
+    check proteinT.class == "Protein"
+
   test "DNA complement":
-    check dnaT.complement == initDna("TGCACCCCA")
+    check dnaT.complement ?= initDna("TGCACCCCA")
 
   test "DNA reverse complement":
-    check dnaT.reverseComplement == initDna("ACCCCACGT")
+    check dnaT.reverseComplement ?= initDna("ACCCCACGT")
 
-  #test "DNA translation":
-  #  fail "TDB"
-  #
-  #test "DNA transcription":
-  #  fail "TDB"
-  #
+  test "DNA translation":
+    ## Remember: DNA to protein
+    check dnaT.translate ?= proteinT
+
+  test "DNA translations with indefinitions":
+    # Check the indefinitions
+    let oddDna: Dna = initDna("ACGTGGGGTT")
+    check oddDna.translate ?= initProtein("TWGX")
+
+    let delDna: Dna = initDna("ACGT-GGGT")
+    check delDna.translate ?= initProtein("TXG")
+
+  test "DNA transcription":
+    ## Remember: DNA to RNA
+    check dnaT.transcript ?= rnaT
+
+  test "RNA back transcribe":
+    ## Remember: RNA to DNA
+    check rnaT.backTranscribe ?= dnaT
+
+  test "RNA complement":
+    check rnaT.complement ?= initRna("UGCACCCCA")
+
+  test "RNA reverse complement":
+    check rnaT.reverseComplement ?= initRna("ACCCCACGU")
+
+  test "RNA translation":
+    check rnaT.translate ?= proteinT
+
 
 suite "Test SequenceRecord operation":
   setup:

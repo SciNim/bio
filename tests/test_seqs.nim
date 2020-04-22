@@ -79,6 +79,33 @@ suite "Test Sequence operation":
   test "RNA translation":
     check rnaT.translate ?= proteinT
 
+suite "Test more complex sequence operations":
+  setup:
+    let dnaShifted: Dna = initDna("ACGT--GGGGT")
+    let rnaShifted: Rna = initRna("ACGU--GGGGU")
+    let dnaGapped: Dna = initDna("ACG---GGGGT")
+    let dnaStops: Dna = initDna("ACGTAAGGGGT")
+    let dnaComplement: Dna = initDna("ACCCC--ACGT")
+    let proteinShifted: Protein = initProtein("TXGX")
+    let proteinGapped: Protein = initProtein("T-GX")
+    let proteinStops: Protein = initProtein("T*GX")
+
+  test "DNA translation with gaps":
+    check dnaShifted.translate ?= proteinShifted
+
+  test "DNA translation with stop codons":
+    check dnaStops.translate ?= proteinStops
+
+  test "DNA translation with gaps in sync":
+    check dnaGapped.translate ?= proteinGapped
+
+  test "DNA complement with gaps":
+    check dnaShifted.reverseComplement ?= dnaComplement
+
+  test "RNA complement with gaps":
+    check rnaShifted.reverseComplement ?=
+      dnaShifted.transcript.reverseComplement
+
 
 suite "Test SequenceRecord operation":
   setup:

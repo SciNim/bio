@@ -19,7 +19,7 @@ const dnaAmbiguousComplement*: Table[char, char] =
   {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A',
    'M': 'K', 'R': 'Y', 'W': 'W', 'S': 'S',
    'Y': 'R', 'K': 'M', 'V': 'B', 'H': 'D',
-   'D': 'H', 'B': 'V', 'X': 'X', 'N': 'N'}.toTable
+   'D': 'H', 'B': 'V', 'X': 'X', 'N': 'N', '-': '-'}.toTable
 
 const codonTable*: Table[string, char] =
   {"TTT": 'F', "TTC": 'F', "TTA": 'L', "TTG": 'L',
@@ -37,10 +37,10 @@ const codonTable*: Table[string, char] =
    "GTG": 'V', "GCT": 'A', "GCC": 'A', "GCA": 'A',
    "GCG": 'A', "GAT": 'D', "GAC": 'D', "GAA": 'E',
    "GAG": 'E', "GGT": 'G', "GGC": 'G', "GGA": 'G',
-   "GGG": 'G'}.toTable
+   "GGG": 'G', "---": '-', "TAA": '*', "TAG": '*', "TGA": '*'}.toTable
 
 const rnaAmbiguousComplement*: Table[char, char] =
   {'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A',
    'M': 'K', 'R': 'Y', 'W': 'W', 'S': 'S',
    'Y': 'R', 'K': 'M', 'V': 'B', 'H': 'D',
-   'D': 'H', 'B': 'V', 'X': 'X', 'N': 'N'}.toTable
+   'D': 'H', 'B': 'V', 'X': 'X', 'N': 'N', '-': '-'}.toTable

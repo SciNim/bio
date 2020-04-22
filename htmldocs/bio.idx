@@ -1,0 +1,20 @@
+Sequence	bio.html#Sequence	bio: Sequence	
+SequenceRecord	bio.html#SequenceRecord	bio: SequenceRecord	
+Dna	bio.html#Dna	bio: Dna	
+Rna	bio.html#Rna	bio: Rna	
+Protein	bio.html#Protein	bio: Protein	
+initDna	bio.html#initDna,string	bio: initDna(chain: string): Dna	
+initRna	bio.html#initRna,string	bio: initRna(chain: string): Rna	
+initProtein	bio.html#initProtein,string	bio: initProtein(chain: string): Protein	
+`$`	bio.html#$,Sequence	bio: `$`(s: Sequence): string	
+`?=`	bio.html#?=,Sequence,Sequence	bio: `?=`(a, b: Sequence): bool	
+write	bio.html#write,SequenceRecord,File,string	bio: write(record: SequenceRecord; fHandler: File; kind: string = &quot;fasta&quot;)	
+write	bio.html#write,SequenceRecord,string,string	bio: write(record: SequenceRecord; fName, kind: string = &quot;fasta&quot;)	
+complement	bio.html#complement,Dna	bio: complement(dna: Dna): Dna	
+reverseComplement	bio.html#reverseComplement,Dna	bio: reverseComplement(dna: Dna): Dna	
+transcript	bio.html#transcript,Dna	bio: transcript(dna: Dna): Rna	
+translate	bio.html#translate,Dna	bio: translate(dna: Dna): Protein	
+complement	bio.html#complement,Rna	bio: complement(rna: Rna): Rna	
+reverseComplement	bio.html#reverseComplement,Rna	bio: reverseComplement(rna: Rna): Rna	
+backTranscribe	bio.html#backTranscribe,Rna	bio: backTranscribe(rna: Rna): Dna	
+translate	bio.html#translate,Rna	bio: translate(rna: Rna): Protein	

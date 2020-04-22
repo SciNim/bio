@@ -15,3 +15,14 @@ task test, "Full test suite":
   exec "testament p tests"
   #exec "testament html"
   #exec "firefox testresults.html"
+  #
+task buildDocs, "Deploy doc html + search index to public/ directory":
+  let
+    docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js"
+  withDir "htmldocs":
+    exec("rm *idx")
+    exec("nim doc --project --index:on ../src/bio.nim")
+    exec("mv bio.html index.html")
+    exec("nim buildIndex -o:theindex.html .")
+    exec("curl -LO " & docHackJsSource)
+    exec("rm *fasta")

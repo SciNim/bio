@@ -5,9 +5,12 @@ import bio/data
 
 type
   Sequence* = ref object of RootObj
+    ## A generic object to store the chain of the Sequence (either nucleotides
+    ## or aminoacids).
     chain*, class*: string
 
   SequenceRecord* = ref object of RootObj
+    ## An intermediate construct to hold a Sequence while naming it.
     name*: string
     record*: Sequence
 
@@ -18,24 +21,36 @@ type
 proc initDna*(chain: string): Dna =
   ## Initializes a new Dna object
   runnableExamples:
-    var dna: Dna = initDna("TGCACCCCA")
+    let dna: Dna = initDna("TGCACCCCA")
   Dna(chain: chain, class: "DNA")
 
 proc initRna*(chain: string): Rna =
   ## Initializes a new Rna object
   runnableExamples:
-    var rna: Rna = initDna("ACGUGGGGU")
+    let rna: Rna = initRna("ACGUGGGGU")
   Rna(chain: chain, class: "RNA")
 
 proc initProtein*(chain: string): Protein =
   ## Initializes a new Protein object
   runnableExamples:
-    var protein: Protein = initProtein("TWG")
+    let protein: Protein = initProtein("TWG")
   Protein(chain: chain, class: "Protein")
 
 proc `$`*(s: Sequence): string =
-  ## Sequence representation is limited to "Class + 60 chars" of sequence
-  ##  If you need the whole sequence, access Sequence.chain directly
+  ## Sequence representation is limited to "`Class` + 60 chars" of sequence.
+  ##
+  ## If you need the whole sequence, access `Sequence.chain` directly
+  runnableExamples:
+    let rna: Rna = initRna("ACGUGGGGU")
+    doAssert $rna == "RNA: ACGUGGGGU"
+
+  runnableExamples:
+    import strutils
+
+    let rna: Rna = initRna("ACGUGGGGU".repeat(10))
+    doAssert $rna ==
+      "RNA: ACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGG…"
+
   let limit: int = 59
   var e: string
   let reprChain: string = s.chain[.. min(s.chain.len - 1, limit)]
@@ -47,10 +62,33 @@ proc `$`*(s: Sequence): string =
     &"{s.class}: {reprChain}{e}"
 
 proc `?=`*(a, b: Sequence): bool =
+  ## Compare two sequences. `true` if both `class` and `chain` are the same.
+  runnableExamples:
+    doAssert initDna("AAACGGG") ?= Sequence(chain: "AAACGGG", class: "DNA")
+    doAssert (initDna("AAACGGG") ?= initRna("AAACGGG")) == false
   (a.chain == b.chain) and (a.class == b.class)
 
-proc write*(record: SequenceRecord, fHandler: File, kind: string) =
-  # TODO kind is a string as in "fasta", to support different formats
+proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
+  ## Write a SequenceRecord to fHandler, wrapping the sequence by 60 positions.
+  ## The name of the SequenceRecord remains untouched.
+  ##
+  ## TBD: `kind` is a string as in "fasta", to support different formats.
+  ## Right now only FASTA files are supported.
+  ##
+  ## To write a FASTA file `myOutput.fasta` with the contents:
+  ##
+  ## .. code-block::
+  ##   >My DNA sequence
+  ##   TGCACCCCA
+  ##
+  ## use the following:
+  runnableExamples:
+    let fastaOut = open("myOutput.fasta", fmWrite)
+    let mySeq = initDna("TGCACCCCA")
+    let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
+
+    myRec.write(fastaOut)
+
   const wrapSize: int = 60
   fHandler.write(">", record.name)
 
@@ -61,22 +99,42 @@ proc write*(record: SequenceRecord, fHandler: File, kind: string) =
   fHandler.write("\n")
   fHandler.flushFile
 
-proc write*(record: SequenceRecord, fName, kind: string) =
+proc write*(record: SequenceRecord, fName, kind: string="fasta") =
+  ## Same as `write-through-handler proc<#write,SequenceRecord,string,string>`_
+  ## but you only need to point out the name of the file.
+  ##
+  runnableExamples:
+    let mySeq = initDna("TGCACCCCA")
+    let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
+
+    myRec.write("myOutput.fasta")
+
   let fHandler: File = open(fName, fmWrite)
   defer: fHandler.close()
 
   write(record, fHandler, kind)
 
 proc complement*(dna: Dna): Dna =
+  ## Return a new `Dna object<#Dna>`_ with the complement sequence.
+  runnableExamples:
+    doAssert initDna("TGCACCCCA").complement.chain == "ACGTGGGGT"
+
   result = initDna("")
   for base in dna.chain:
     result.chain.add(dnaAmbiguousComplement[base])
 
 proc reverseComplement*(dna: Dna): Dna =
+  ## Return a new `Dna object<#Dna>`_ with the reverse complement sequence.
+  runnableExamples:
+    doAssert initDna("ACGTGGGGT").reverseComplement.chain == "ACCCCACGT"
+
   result = dna.complement()
   result.chain = reversed(result.chain)
 
 proc transcript*(dna: Dna): Rna =
+  ## Return a new `Rna object<#Rna>`_ with the transcribed sequence.
+  runnableExamples:
+    doAssert initDna("ACGTGGGGT").transcript.chain == "ACGUGGGGU"
   result = initRna("")
   for base in dna.chain:
     if base == 'T':
@@ -85,6 +143,18 @@ proc transcript*(dna: Dna): Rna =
       result.chain.add(base)
 
 proc translate*(dna: Dna): Protein =
+  ## Return a new `Protein object<#Protein>`_ with the translated sequence.
+  ##
+  ## In-frame deletions are translated as `-`, out-of-frame deletions as `X`,
+  ## stop codons as `*`.
+  ##
+  runnableExamples:
+    doAssert initDna("ACGTGGGGT").translate.chain == "TWG"
+
+    doAssert initDna("ACGT--GGGGT").translate.chain == "TXGX"
+
+    doAssert initDna("ACGTAAGGGGT").translate.chain == "T*GX"
+
   result = initProtein("")
   var codon: string
   for base in dna.chain:
@@ -96,15 +166,24 @@ proc translate*(dna: Dna): Protein =
     result.chain.add 'X'
 
 proc complement*(rna: Rna): Rna =
+  ## Return a new `Rna object<#Rna>`_ with the complement sequence.
+  runnableExamples:
+    doAssert initRna("ACGUGGGGU").complement.chain == "UGCACCCCA"
   result = initRna("")
   for base in rna.chain:
     result.chain.add(rnaAmbiguousComplement[base])
 
 proc reverseComplement*(rna: Rna): Rna =
+  ## Return a new `Rna object<#Rna>`_ with the reverse complement sequence.
+  runnableExamples:
+    doAssert initRna("ACGUGGGGU").reverseComplement.chain == "ACCCCACGU"
   result = rna.complement()
   result.chain = reversed(result.chain)
 
 proc backTranscribe*(rna: Rna): Dna =
+  ## Return a new `Dna object<#Dna>`_ with the sequence transcribed from RNA.
+  runnableExamples:
+    doAssert initRna("ACGUGGGGU").backTranscribe.chain == "ACGTGGGGT"
   result = initDna("")
   for base in rna.chain:
     if base == 'U':
@@ -113,4 +192,7 @@ proc backTranscribe*(rna: Rna): Dna =
       result.chain.add(base)
 
 proc translate*(rna: Rna): Protein =
+  ## Return a new `Protein object<#Protein>`_ with the translated sequence.
+  runnableExamples:
+    doAssert initRna("ACGUGGGGU").translate.chain == "TWG"
   translate(rna.backTranscribe)

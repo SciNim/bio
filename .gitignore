@@ -3,3 +3,4 @@ nimcache/
 testresults*
 
 tests/test_seqs
+tests/test_fasta

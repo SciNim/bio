@@ -68,3 +68,8 @@ suite "Test SequenceRecord operation":
     check records[1].record.chain.len == 120
     check records[0].record.class == "DNA"
 
+  test "Load records from FASTA":
+    # TODO: empty file
+    # TODO: file with only one sequence
+    # TODO: wrong file (maybe a genbank file)
+    discard

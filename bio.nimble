@@ -20,9 +20,10 @@ task buildDocs, "Deploy doc html + search index to public/ directory":
   let
     docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js"
   withDir "htmldocs":
-    exec("rm *idx")
+    exec("rm *idx -f")
     exec("nim doc --project --index:on ../src/bio.nim")
-    exec("mv bio.html index.html")
+    #exec("nim doc --project --index:on ../src/bio/fasta.nim")
+    #exec("mv bio.html index.html")
     exec("nim buildIndex -o:theindex.html .")
     exec("curl -LO " & docHackJsSource)
-    exec("rm *fasta")
+    exec("rm *fasta -f")

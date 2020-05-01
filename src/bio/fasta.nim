@@ -4,34 +4,38 @@ import ../bio
 
 iterator sequences*(fName: string, kind: string="fasta"):
   SequenceRecord {.inline.} =
-  ## Iterate through all the sequences in a given filename,
-  ## yielding SequenceRecords
-  runnableExamples:
-    for sequence in sequences("test_files/regular_fasta.fas"):
-      doAssert(sequence of SequenceRecord)
+  ## Iterate through all the sequences in a given filename, yielding
+  ## `SequenceRecords`.
+  ##
+  ## .. code-block::
+  ##
+  ##   for sequence in sequences("path/to/file.fas"):
+  ##     doAssert(sequence of SequenceRecord)
 
   let fileIn: File = open(fName)
   defer: fileIn.close
 
-  let name = fileIn.readLine
-  var sequence = Sequence()
-  var seqRecord = SequenceRecord(name: name.strip()[1..^1], record: sequence)
+  var sequence: Sequence = Sequence()
+  var seqRecord: SequenceRecord
   for line in fileIn.lines:
-    if line[0] == '>':
-      seqRecord.record.class = guess(seqRecord.record.chain)
+    if (line[0] == '>' and sequence.chain.len > 0) or fileIn.endOfFile:
+      sequence.class = guess(sequence.chain)
       yield seqRecord
+
+    if line[0] == '>':
       sequence = Sequence()
       seqRecord = SequenceRecord(name: line.strip()[1..^1], record: sequence)
     else:
-      seqRecord.record.chain.add line.strip().toUpper()
-  yield seqRecord
+      sequence.chain.add line.strip().toUpper
 
 proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   ## Load a sequence of files from a filename.
   ##
-  ## If you need an interator over a file, use `sequences iterator<#sequences>`_
-  runnableExamples:
-    let mySeqs: SequenceRecord = load("test_files/regular_fasta.fas")
+  ## If you need an interator over a file, use the `sequences iterator<#sequences.i,string,string>`_
+  ##
+  ## .. code-block::
+  ##
+  ##  let mySeqs = load("path/to/file.fas")
 
   for sequence in sequences(fName):
     result.add sequence
@@ -51,6 +55,8 @@ proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   ##
   ## use the following:
   runnableExamples:
+    import ../bio
+
     let fastaOut = open("myOutput.fasta", fmWrite)
     let mySeq = initDna("TGCACCCCA")
     let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
@@ -72,6 +78,8 @@ proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
   ## but you only need to point out the name of the file.
   ##
   runnableExamples:
+    import ../bio
+
     let mySeq = initDna("TGCACCCCA")
     let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
 

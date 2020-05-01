@@ -46,7 +46,7 @@ suite "Test SequenceRecord operation":
 
   test "Load records from FASTA through filename":
     let records: seq[SequenceRecord] = load(getAppDir() /
-                                            "test_files/regular_fasta.fas")
+                                            "test_files/regular.fas")
 
     check records.len == 2
     check records[0].name == "First sequence"
@@ -58,7 +58,7 @@ suite "Test SequenceRecord operation":
   test "Load record from FASTA through iterator + filename":
     var records: seq[SequenceRecord]
 
-    for s in sequences(getAppDir() / "test_files/regular_fasta.fas"):
+    for s in sequences(getAppDir() / "test_files/regular.fas"):
       records.add s
 
     check records.len == 2
@@ -68,8 +68,18 @@ suite "Test SequenceRecord operation":
     check records[1].record.chain.len == 120
     check records[0].record.class == "DNA"
 
-  test "Load records from FASTA":
-    # TODO: empty file
-    # TODO: file with only one sequence
-    # TODO: wrong file (maybe a genbank file)
-    discard
+  test "Load records from FASTA: special cases":
+    test "The empty file: returns empty seq":
+      var records: seq[SequenceRecord]
+
+      for s in sequences(getAppDir() / "test_files/empty.fas"):
+        records.add s
+
+      check records.len == 0
+
+    test "The lonely sequence: returns a seq with only one sequence":
+      var records: seq[SequenceRecord]
+      for s in sequences(getAppDir() / "test_files/one_sequence.fas"):
+        records.add s
+
+      check records.len == 1

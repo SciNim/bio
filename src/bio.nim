@@ -2,7 +2,9 @@ import sequtils
 import strformat
 import unicode
 import tables
+
 import bio/data
+
 
 type
   Sequence* = ref object of RootObj

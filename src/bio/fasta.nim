@@ -1,4 +1,29 @@
+import strutils
 import ../bio
+
+
+proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
+  ## Load a sequence of files from a filename.
+  ##
+  ## If you need an interator over a file, use `sequences iterator<#sequences>`_
+  runnableExamples:
+    let mySeqs: SequenceRecord = load("test_files/regular_fasta.fas")
+
+  let fileIn: File = open(fName)
+  defer: fileIn.close
+
+  let name = fileIn.readLine
+  var sequence = Sequence()
+  var seqRecord = SequenceRecord(name: name.strip()[1..^1], record: sequence)
+  for line in fileIn.lines:
+    if line[0] == '>':
+      seqRecord.record.class = guess(seqRecord.record.chain)
+      result.add seqRecord
+      sequence = Sequence()
+      seqRecord = SequenceRecord(name: line.strip()[1..^1], record: sequence)
+    else:
+      seqRecord.record.chain.add line.strip().toUpper()
+  result.add seqRecord
 
 proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   ## Write a SequenceRecord to fHandler, wrapping the sequence by 60 positions.
@@ -31,7 +56,7 @@ proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   fHandler.write("\n")
   fHandler.flushFile
 
-proc write*(record: SequenceRecord, fName, kind: string="fasta") =
+proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
   ## Same as `write-through-handler proc<#write,SequenceRecord,string,string>`_
   ## but you only need to point out the name of the file.
   ##
@@ -45,3 +70,26 @@ proc write*(record: SequenceRecord, fName, kind: string="fasta") =
   defer: fHandler.close()
 
   write(record, fHandler, kind)
+
+iterator sequences*(fName: string, kind: string="fasta"):
+  SequenceRecord {.inline.} =
+  ## Iterate through all the sequences in a given filename
+  runnableExamples:
+    for sequence in sequences("test_files/regular_fasta.fas"):
+      doAssert(sequence of SequenceRecord)
+
+  let fileIn: File = open(fName)
+  defer: fileIn.close
+
+  let name = fileIn.readLine
+  var sequence = Sequence()
+  var seqRecord = SequenceRecord(name: name.strip()[1..^1], record: sequence)
+  for line in fileIn.lines:
+    if line[0] == '>':
+      seqRecord.record.class = guess(seqRecord.record.chain)
+      yield seqRecord
+      sequence = Sequence()
+      seqRecord = SequenceRecord(name: line.strip()[1..^1], record: sequence)
+    else:
+      seqRecord.record.chain.add line.strip().toUpper()
+  yield seqRecord

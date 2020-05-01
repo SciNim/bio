@@ -43,3 +43,28 @@ suite "Test SequenceRecord operation":
     check fastaFile.len == 3
     check fastaFile[1].len == 60
     check fastaFile[1] == dna.chain[0 .. 59]
+
+  test "Load records from FASTA through filename":
+    let records: seq[SequenceRecord] = load(getAppDir() /
+                                            "test_files/regular_fasta.fas")
+
+    check records.len == 2
+    check records[0].name == "First sequence"
+    check records[1].name == "Second sequence"
+    check records[0].record.chain.len == 120
+    check records[1].record.chain.len == 120
+    check records[0].record.class == "DNA"
+
+  test "Load record from FASTA through iterator + filename":
+    var records: seq[SequenceRecord]
+
+    for s in sequences(getAppDir() / "test_files/regular_fasta.fas"):
+      records.add s
+
+    check records.len == 2
+    check records[0].name == "First sequence"
+    check records[1].name == "Second sequence"
+    check records[0].record.chain.len == 120
+    check records[1].record.chain.len == 120
+    check records[0].record.class == "DNA"
+

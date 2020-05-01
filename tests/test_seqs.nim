@@ -79,6 +79,13 @@ suite "Test Sequence operation":
   test "RNA translation":
     check rnaT.translate ?= proteinT
 
+  test "Sequence class guesser":
+    check dnaT.chain.guess == "DNA"
+    check rnaT.chain.guess == "RNA"
+    check "FSYWLSCPIK".guess == "Protein"
+
+    check proteinT.chain.guess == ""
+
 suite "Test more complex sequence operations":
   setup:
     let dnaShifted: Dna = initDna("ACGT--GGGGT")

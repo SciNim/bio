@@ -1,7 +1,9 @@
 import tables
 
 const dnaLettersAmbiguous: string = "GATCRYWSMKHBVDN"
-const dnaLetters: string = "ACGT"
+const dnaLetters*: string = "ACGT"
+const rnaLetters*: string = "ACGU"
+const proteinLetters*: string = "ACDEFGHIKLMNPQRSTVWY"
 
 #   B == 5-bromouridine
 #   D == 5,6-dihydrouridine

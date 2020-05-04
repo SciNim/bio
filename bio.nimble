@@ -20,14 +20,15 @@ task test, "Full test suite":
 task docs, "Deploy doc html + search index to public/ directory":
   let
     docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js"
-    envs = &"--putenv:nimversion={system.NimVersion} " &
-           &"--putenv:libversion={version}"
 
   withDir "htmldocs":
     exec("rm *idx -f")
-    exec(&"nim rst2html {envs} ../docs/index.rst")
-    exec("nim doc --project --index:on ../src/bio.nim")
-    exec("nim doc --index:on ../src/bio/fasta.nim")
-    exec("nim buildIndex -o:theindex.html .")
+    putEnv("author", author)
+    putEnv("nimversion", system.NimVersion)
+    putEnv("libversion", version)
+    selfExec(&"rst2html ../docs/index.rst")
+    selfExec("doc --project --index:on ../src/bio/sequences.nim")
+    selfExec("doc --project --index:on ../src/bio/fasta.nim")
+    selfExec("buildIndex -o:theindex.html .")
     # Download the JS only if it's newest than the local one.
     exec("curl -LO -z dochack.js " & docHackJsSource)

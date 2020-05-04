@@ -21,7 +21,7 @@ API docs
 Sequences
 ---------
 
-* `bio <bio.html>`_ explains Sequences, the core of the library.
+* `sequences <sequences.html>`_ explains Sequences, the core of the library.
 
 Operations with files
 ---------------------

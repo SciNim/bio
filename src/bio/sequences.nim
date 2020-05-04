@@ -1,9 +1,11 @@
+## :Author: |author|
+## :Version: |libversion|
 import sequtils
 import strformat
 import unicode
 import tables
 
-import bio/data
+import data
 
 
 type
@@ -71,24 +73,26 @@ proc `?=`*(a, b: Sequence): bool =
     doAssert (initDna("AAACGGG") ?= initRna("AAACGGG")) == false
   (a.chain == b.chain) and (a.class == b.class)
 
-proc guess*(s: string): string =
+proc guess*(s: string): Sequence =
   ## Guesses what is a sequence: DNA, RNA or Protein, inferring from its first
   ## bases
   runnableExamples:
-    doAssert guess("ATCGGCATCG") == "DNA"
-    doAssert guess("AUCGGCAUCG") == "RNA"
-    doAssert guess("FSYWLSCPIK") == "Protein"
-  if s.len < 5: return  # Sequence too short to guess anything
+    doAssert guess("ATCGGCATCG") ?= initDna("ATCGGCATCG")
+    doAssert guess("AUCGGCAUCG") ?= initRna("AUCGGCAUCG")
+    doAssert guess("FSYWLSCPIK") ?= initProtein("FSYWLSCPIK")
+  if s.len < 5: return Sequence(chain: s) # Sequence too short to guess
 
   let q = s[0 .. min(80, s.len - 1)]  # Run at most with 80 positions
   let limit: int = int(float(len(q)) * 0.9)
 
   if countIt(q, it in dnaLetters) >= limit:
-    return "DNA"
+    result = initDna(s)
   elif countIt(q, it in rnaLetters) >= limit:
-    return "RNA"
+    result = initRna(s)
   elif countIt(q, it in proteinLetters) >= limit:
-    return "Protein"
+    result = initProtein(s)
+  else:
+    result = Sequence(chain: s)
 
 proc complement*(dna: Dna): Dna =
   ## Return a new `Dna object<#Dna>`_ with the complement sequence.

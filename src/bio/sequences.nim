@@ -15,7 +15,7 @@ type
     chain*, class*: string
 
   SequenceRecord* = ref object of RootObj
-    ## An intermediate construct to hold a Sequence while naming it.
+    ## An intermediate construct to hold a `Sequence<#Sequence>`_ while naming it.
     name*: string
     record*: Sequence
 
@@ -24,27 +24,30 @@ type
   Protein* = ref object of Sequence
 
 proc initDna*(chain: string): Dna =
-  ## Initializes a new Dna object
+  ## Initializes a new Dna object, autoadding the class "DNA".
   runnableExamples:
     let dna: Dna = initDna("TGCACCCCA")
+    doAssert dna.class == "DNA"
   Dna(chain: chain, class: "DNA")
 
 proc initRna*(chain: string): Rna =
-  ## Initializes a new Rna object
+  ## Initializes a new Rna object, autoadding the class "RNA".
   runnableExamples:
     let rna: Rna = initRna("ACGUGGGGU")
+    doAssert rna.class == "RNA"
   Rna(chain: chain, class: "RNA")
 
 proc initProtein*(chain: string): Protein =
-  ## Initializes a new Protein object
+  ## Initializes a new Protein object, autoadding the class "Protein".
   runnableExamples:
     let protein: Protein = initProtein("TWG")
+    doAssert protein.class == "Protein"
   Protein(chain: chain, class: "Protein")
 
 proc `$`*(s: Sequence): string =
   ## Sequence representation is limited to "`Class` + 60 chars" of sequence.
   ##
-  ## If you need the whole sequence, access `Sequence.chain` directly
+  ## If you need the whole sequence, access `Sequence.chain<#Sequence>`_ directly
   runnableExamples:
     let rna: Rna = initRna("ACGUGGGGU")
     doAssert $rna == "RNA: ACGUGGGGU"
@@ -66,6 +69,16 @@ proc `$`*(s: Sequence): string =
   else:
     &"{s.class}: {reprChain}{e}"
 
+proc `$`*(sr: SequenceRecord): string =
+  ## Same as the `$<#$,Sequence>`_ for Sequence, but adding the `name` of the
+  ## `SequenceRecord<#SequenceRecord>`_.
+  runnableExamples:
+    let rna: Rna = initRna("ACGUGGGGU")
+    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
+    doAssert $sequenceRecord == "MyRna [RNA: ACGUGGGGU]"
+
+  &"{sr.name} [{sr.record}]"
+
 proc `?=`*(a, b: Sequence): bool =
   ## Compare two sequences. `true` if both `class` and `chain` are the same.
   runnableExamples:
@@ -74,14 +87,25 @@ proc `?=`*(a, b: Sequence): bool =
   (a.chain == b.chain) and (a.class == b.class)
 
 proc len*(s: Sequence): int =
-  ## Get the length of a Sequence chain
+  ## Get the length of a `Sequence<#Sequence>`_ chain.
   runnableExamples:
-    doAssert len(initDna("AAACGGG")) ?= len("AAACGGG")
+    doAssert len(initDna("AAACGGG")) == len("AAACGGG")
   len(s.chain)
 
+proc len*(sr: SequenceRecord): int =
+  ## Get the length of a `SequenceRecord<#SequenceRecord>`_ chain.
+  runnableExamples:
+    let s = initDna("ACTGGTGGA")
+    let sequenceRecord = SequenceRecord(name: "SR1", record: s)
+    doAssert len("ACTGGTGGA") == len(sequenceRecord)
+  len(sr.record)
+
 proc guess*(s: string): Sequence =
-  ## Guesses what is a sequence: DNA, RNA or Protein, inferring from its first
-  ## bases
+  ## Guesses what is a sequence, `DNA<#Dna>`_, `RNA<#Rna>`_ or
+  ## `Protein<#Protein>`_, inferring from its first bases.
+  ##
+  ## If the class cannot be inferred, a generic `Sequence<#Sequence>`_ is
+  ## returned.
   runnableExamples:
     doAssert guess("ATCGGCATCG") ?= initDna("ATCGGCATCG")
     doAssert guess("AUCGGCAUCG") ?= initRna("AUCGGCAUCG")
@@ -101,7 +125,7 @@ proc guess*(s: string): Sequence =
     result = Sequence(chain: s)
 
 proc complement*(dna: Dna): Dna =
-  ## Return a new `Dna object<#Dna>`_ with the complement sequence.
+  ## Return a new `Dna<#Dna>`_ with the complement sequence.
   runnableExamples:
     doAssert initDna("TGCACCCCA").complement.chain == "ACGTGGGGT"
 
@@ -110,7 +134,7 @@ proc complement*(dna: Dna): Dna =
     result.chain.add(dnaAmbiguousComplement[base])
 
 proc reverseComplement*(dna: Dna): Dna =
-  ## Return a new `Dna object<#Dna>`_ with the reverse complement sequence.
+  ## Return a new `Dna<#Dna>`_ with the reverse complement sequence.
   runnableExamples:
     doAssert initDna("ACGTGGGGT").reverseComplement.chain == "ACCCCACGT"
 
@@ -118,7 +142,7 @@ proc reverseComplement*(dna: Dna): Dna =
   result.chain = reversed(result.chain)
 
 proc transcript*(dna: Dna): Rna =
-  ## Return a new `Rna object<#Rna>`_ with the transcribed sequence.
+  ## Return a new `Rna<#Rna>`_ with the transcribed sequence.
   runnableExamples:
     doAssert initDna("ACGTGGGGT").transcript.chain == "ACGUGGGGU"
   result = initRna("")
@@ -129,7 +153,7 @@ proc transcript*(dna: Dna): Rna =
       result.chain.add(base)
 
 proc translate*(dna: Dna): Protein =
-  ## Return a new `Protein object<#Protein>`_ with the translated sequence.
+  ## Return a new `Protein<#Protein>`_ with the translated sequence.
   ##
   ## In-frame deletions are translated as `-`, out-of-frame deletions as `X`,
   ## stop codons as `*`.
@@ -152,7 +176,7 @@ proc translate*(dna: Dna): Protein =
     result.chain.add 'X'
 
 proc complement*(rna: Rna): Rna =
-  ## Return a new `Rna object<#Rna>`_ with the complement sequence.
+  ## Return a new `Rna<#Rna>`_ with the complement sequence.
   runnableExamples:
     doAssert initRna("ACGUGGGGU").complement.chain == "UGCACCCCA"
   result = initRna("")
@@ -160,14 +184,14 @@ proc complement*(rna: Rna): Rna =
     result.chain.add(rnaAmbiguousComplement[base])
 
 proc reverseComplement*(rna: Rna): Rna =
-  ## Return a new `Rna object<#Rna>`_ with the reverse complement sequence.
+  ## Return a new `Rna<#Rna>`_ with the reverse complement sequence.
   runnableExamples:
     doAssert initRna("ACGUGGGGU").reverseComplement.chain == "ACCCCACGU"
   result = rna.complement()
   result.chain = reversed(result.chain)
 
 proc backTranscribe*(rna: Rna): Dna =
-  ## Return a new `Dna object<#Dna>`_ with the sequence transcribed from RNA.
+  ## Return a new `Dna<#Dna>`_ with the sequence transcribed from RNA.
   runnableExamples:
     doAssert initRna("ACGUGGGGU").backTranscribe.chain == "ACGTGGGGT"
   result = initDna("")
@@ -178,7 +202,7 @@ proc backTranscribe*(rna: Rna): Dna =
       result.chain.add(base)
 
 proc translate*(rna: Rna): Protein =
-  ## Return a new `Protein object<#Protein>`_ with the translated sequence.
+  ## Return a new `Protein<#Protein>`_ with the translated sequence.
   runnableExamples:
     doAssert initRna("ACGUGGGGU").translate.chain == "TWG"
   translate(rna.backTranscribe)

@@ -116,3 +116,16 @@ suite "Test more complex sequence operations":
   test "RNA complement with gaps":
     check rnaShifted.reverseComplement ?=
       dnaShifted.transcript.reverseComplement
+
+suite "Test sequenceRecord operations":
+  setup:
+    let sequence: Dna = initDna("ACTGGTGGA")
+    let sr: SequenceRecord = SequenceRecord(name: "SR1",
+                                            record: sequence)
+
+  test "SequenceRecord length can be checked":
+    check sr.len == sequence.len
+    check sr.len == 9
+
+  test "SequenceRecord humanized string":
+    check $sr == "SR1 [DNA: ACTGGTGGA]"

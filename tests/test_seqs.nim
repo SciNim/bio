@@ -86,6 +86,10 @@ suite "Test Sequence operation":
 
     check guess(proteinT.chain) ?= Sequence(chain: proteinT.chain, class: "")
 
+  test "Sequence len":
+    check dnaT.len == 9
+    check proteinT.len == 3
+
 suite "Test more complex sequence operations":
   setup:
     let dnaShifted: Dna = initDna("ACGT--GGGGT")

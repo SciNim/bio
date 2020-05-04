@@ -73,6 +73,12 @@ proc `?=`*(a, b: Sequence): bool =
     doAssert (initDna("AAACGGG") ?= initRna("AAACGGG")) == false
   (a.chain == b.chain) and (a.class == b.class)
 
+proc len*(s: Sequence): int =
+  ## Get the length of a Sequence chain
+  runnableExamples:
+    doAssert len(initDna("AAACGGG")) ?= len("AAACGGG")
+  len(s.chain)
+
 proc guess*(s: string): Sequence =
   ## Guesses what is a sequence: DNA, RNA or Protein, inferring from its first
   ## bases

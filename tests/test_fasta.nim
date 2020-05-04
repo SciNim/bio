@@ -4,7 +4,7 @@ import strformat
 import strutils
 import unittest
 
-import bio
+import bio/sequences
 import bio/fasta
 
 
@@ -53,7 +53,7 @@ suite "Test SequenceRecord operation":
     check records[1].name == "Second sequence"
     check records[0].record.chain.len == 120
     check records[1].record.chain.len == 120
-    check records[0].record.class == "DNA"
+    check records[0].record of Dna
 
   test "Load record from FASTA through iterator + filename":
     var records: seq[SequenceRecord]
@@ -66,7 +66,7 @@ suite "Test SequenceRecord operation":
     check records[1].name == "Second sequence"
     check records[0].record.chain.len == 120
     check records[1].record.chain.len == 120
-    check records[0].record.class == "DNA"
+    check records[0].record of Dna
 
   test "Load records from FASTA: special cases":
     test "The empty file: returns empty seq":

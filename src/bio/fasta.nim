@@ -1,5 +1,5 @@
 import strutils
-import ../bio
+import sequences
 
 
 iterator sequences*(fName: string, kind: string="fasta"):
@@ -17,18 +17,20 @@ iterator sequences*(fName: string, kind: string="fasta"):
   let fileIn: File = open(fName)
   defer: fileIn.close
 
-  var sequence: Sequence = Sequence()
+  var sequence: string
   var seqRecord: SequenceRecord
   for line in fileIn.lines:
-    if (line[0] == '>' and sequence.chain.len > 0) or fileIn.endOfFile:
-      sequence.class = guess(sequence.chain)
+    if (line[0] == '>' and sequence.len > 0) or fileIn.endOfFile:
+      if fileIn.endOfFile:
+        sequence.add line.strip().toUpper
+      seqRecord.record = guess(sequence)
       yield seqRecord
 
     if line[0] == '>':
-      sequence = Sequence()
-      seqRecord = SequenceRecord(name: line.strip()[1..^1], record: sequence)
+      sequence = ""
+      seqRecord = SequenceRecord(name: line.strip()[1..^1])
     else:
-      sequence.chain.add line.strip().toUpper
+      sequence.add line.strip().toUpper
 
 proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   ## Load a sequence of files from a filename.

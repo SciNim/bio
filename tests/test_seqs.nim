@@ -4,7 +4,7 @@ import strformat
 import strutils
 import unittest
 
-import bio
+import bio/sequences
 
 
 suite "Test Sequence operation":
@@ -79,12 +79,12 @@ suite "Test Sequence operation":
   test "RNA translation":
     check rnaT.translate ?= proteinT
 
-  test "Sequence class guesser":
-    check dnaT.chain.guess == "DNA"
-    check rnaT.chain.guess == "RNA"
-    check "FSYWLSCPIK".guess == "Protein"
+  test "Sequence class guessed":
+    check guess(dnaT.chain) ?= initDna("ACGTGGGGT")
+    check guess(rnaT.chain) ?= initRna("ACGUGGGGU")
+    check guess("FSYWLSCPIK") ?= initProtein("FSYWLSCPIK")
 
-    check proteinT.chain.guess == ""
+    check guess(proteinT.chain) ?= Sequence(chain: proteinT.chain, class: "")
 
 suite "Test more complex sequence operations":
   setup:

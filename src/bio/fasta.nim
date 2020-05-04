@@ -9,6 +9,8 @@ iterator sequences*(fName: string, kind: string="fasta"):
   ##
   ## .. code-block::
   ##
+  ##   import bio/fasta
+  ##
   ##   for sequence in sequences("path/to/file.fas"):
   ##     doAssert(sequence of SequenceRecord)
 
@@ -35,7 +37,9 @@ proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   ##
   ## .. code-block::
   ##
-  ##  let mySeqs = load("path/to/file.fas")
+  ##    import bio/fasta
+  ##
+  ##    let mySeqs = load("path/to/file.fas")
 
   for sequence in sequences(fName):
     result.add sequence
@@ -53,16 +57,14 @@ proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   ##   >My DNA sequence
   ##   TGCACCCCA
   ##
-  ## use the following:
-  runnableExamples:
-    import ../bio
-
-    let fastaOut = open("myOutput.fasta", fmWrite)
-    let mySeq = initDna("TGCACCCCA")
-    let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
-
-    myRec.write(fastaOut)
-
+  ##   import ../bio  # You should `import bio/fasta`
+  ##
+  ##   let fastaOut = open("myOutput.fasta", fmWrite)
+  ##   let mySeq = initDna("TGCACCCCA")
+  ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
+  ##
+  ##   myRec.write(fastaOut)
+  ##   fastaOut.close()
   const wrapSize: int = 60
   fHandler.write(">", record.name)
 
@@ -77,14 +79,14 @@ proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
   ## Same as `write-through-handler proc<#write,SequenceRecord,string,string>`_
   ## but you only need to point out the name of the file.
   ##
-  runnableExamples:
-    import ../bio
+  ## .. code-block::
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let mySeq = initDna("TGCACCCCA")
+  ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
 
-    let mySeq = initDna("TGCACCCCA")
-    let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
-
-    myRec.write("myOutput.fasta")
-
+  ##   myRec.write("myOutput.fasta")
   let fHandler: File = open(fName, fmWrite)
   defer: fHandler.close()
 

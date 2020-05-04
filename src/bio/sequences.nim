@@ -113,8 +113,7 @@ proc guess*(s: string): Sequence =
     doAssert guess("FSYWLSCPIK") ?= initProtein("FSYWLSCPIK")
   if s.len < 5: return Sequence(chain: s) # Sequence too short to guess
 
-  let cleanS = s.replace("-", "")
-  echo cleanS
+  let cleanS: string = s.replace("-", "")
 
   let q = cleanS[0 .. min(80, cleanS.len - 1)]  # Run at most with 80 positions
   let limit: int = int(float(len(q)) * 0.9)

@@ -86,6 +86,10 @@ suite "Test Sequence operation":
 
     check guess(proteinT.chain) ?= Sequence(chain: proteinT.chain, class: "")
 
+  test "A slightly more complex guessing (dashes)":
+    check guess("---------------------ACGTGGGGT") of Dna
+    check guess("--------------------FSYWLSCPIK") of Protein
+
   test "Sequence len":
     check dnaT.len == 9
     check proteinT.len == 3

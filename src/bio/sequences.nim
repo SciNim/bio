@@ -2,6 +2,7 @@
 ## :Version: |libversion|
 import sequtils
 import strformat
+import strutils
 import unicode
 import tables
 
@@ -112,7 +113,10 @@ proc guess*(s: string): Sequence =
     doAssert guess("FSYWLSCPIK") ?= initProtein("FSYWLSCPIK")
   if s.len < 5: return Sequence(chain: s) # Sequence too short to guess
 
-  let q = s[0 .. min(80, s.len - 1)]  # Run at most with 80 positions
+  let cleanS = s.replace("-", "")
+  echo cleanS
+
+  let q = cleanS[0 .. min(80, cleanS.len - 1)]  # Run at most with 80 positions
   let limit: int = int(float(len(q)) * 0.9)
 
   if countIt(q, it in dnaLetters) >= limit:

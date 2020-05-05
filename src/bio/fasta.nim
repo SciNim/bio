@@ -1,6 +1,9 @@
 import strutils
 import sequences
 
+# TODO: export sequences to make it available only importing thi
+#
+
 
 iterator sequences*(fName: string, kind: string="fasta"):
   SequenceRecord {.inline.} =
@@ -17,20 +20,18 @@ iterator sequences*(fName: string, kind: string="fasta"):
   let fileIn: File = open(fName)
   defer: fileIn.close
 
-  var sequence: string
-  var seqRecord: SequenceRecord
+  var name, sequence: string
   for line in fileIn.lines:
     if (line[0] == '>' and sequence.len > 0) or fileIn.endOfFile:
       if fileIn.endOfFile:
-        sequence.add line.strip().toUpper
-      seqRecord.record = guess(sequence)
-      yield seqRecord
+        sequence.add line.toUpper
+      yield SequenceRecord(name: name, record: guess(sequence))
 
     if line[0] == '>':
       sequence = ""
-      seqRecord = SequenceRecord(name: line.strip()[1..^1])
+      name = line[1..^1]
     else:
-      sequence.add line.strip().toUpper
+      sequence.add line.toUpper
 
 proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   ## Load a sequence of files from a filename.

@@ -21,6 +21,8 @@ task docs, "Deploy doc html + search index to public/ directory":
   let
     docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js"
 
+  mkdir("htmldocs")
+
   withDir "htmldocs":
     exec("rm *idx -f")
     putEnv("author", author)

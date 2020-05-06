@@ -1,5 +1,7 @@
 import strutils
+
 import sequences
+export sequences
 
 # TODO: export sequences to make it available only importing thi
 #
@@ -24,14 +26,14 @@ iterator sequences*(fName: string, kind: string="fasta"):
   for line in fileIn.lines:
     if (line[0] == '>' and sequence.len > 0) or fileIn.endOfFile:
       if fileIn.endOfFile:
-        sequence.add line.toUpper
-      yield SequenceRecord(name: name, record: guess(sequence))
+        sequence.add line
+      yield SequenceRecord(name: name, record: guess(sequence.toUpperAscii))
 
     if line[0] == '>':
       sequence = ""
       name = line[1..^1]
     else:
-      sequence.add line.toUpper
+      sequence.add line
 
 proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   ## Load a sequence of files from a filename.
@@ -73,9 +75,9 @@ proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
 
   for i, base in record.record.chain.pairs:
     if i mod wrapSize == 0:
-      fHandler.write("\n")
+      fHandler.write('\n')
     fHandler.write(base)
-  fHandler.write("\n")
+  fHandler.write('\n')
   fHandler.flushFile
 
 proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =

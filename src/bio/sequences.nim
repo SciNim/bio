@@ -105,6 +105,9 @@ proc guess*(s: string): Sequence =
   ## Guesses what is a sequence, `DNA<#Dna>`_, `RNA<#Rna>`_ or
   ## `Protein<#Protein>`_, inferring from its first bases.
   ##
+  ## 'N' and 'X' are not considered for the guess, even if 'N' is a valid
+  ## aminoacid.
+  ##
   ## If the class cannot be inferred, a generic `Sequence<#Sequence>`_ is
   ## returned.
   runnableExamples:
@@ -113,19 +116,24 @@ proc guess*(s: string): Sequence =
     doAssert guess("FSYWLSCPIK") ?= initProtein("FSYWLSCPIK")
   if s.len < 5: return Sequence(chain: s) # Sequence too short to guess
 
-  let cleanS: string = s.replace("-", "")
+  var q: string
 
-  let q = cleanS[0 .. min(80, cleanS.len - 1)]  # Run at most with 80 positions
+  for c in s:
+    if q.len == 80:
+      break
+    if c in {'-', 'X', 'N'}:  # Add, after tests, N and X
+      continue
+    q.add c
+
   let limit: int = int(float(len(q)) * 0.9)
 
   if countIt(q, it in dnaLetters) >= limit:
-    result = initDna(s)
+    return initDna(s)
   elif countIt(q, it in rnaLetters) >= limit:
-    result = initRna(s)
+    return initRna(s)
   elif countIt(q, it in proteinLetters) >= limit:
-    result = initProtein(s)
-  else:
-    result = Sequence(chain: s)
+    return initProtein(s)
+  Sequence(chain: s)
 
 proc complement*(dna: Dna): Dna =
   ## Return a new `Dna<#Dna>`_ with the complement sequence.

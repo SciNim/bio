@@ -90,6 +90,10 @@ suite "Test Sequence operation":
     check guess("---------------------ACGTGGGGT") of Dna
     check guess("--------------------FSYWLSCPIK") of Protein
 
+    # Indefinitions are resolved
+    check guess("NNNNNNNNNNNNNNNNNNNNNNNNNNNNACTGGTGG") of Dna
+    check guess("XXXXXXXXXXXXXXXXXXXXXXXXXXFSYWLSCPIK") of Protein
+
   test "Sequence len":
     check dnaT.len == 9
     check proteinT.len == 3

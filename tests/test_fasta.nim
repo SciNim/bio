@@ -83,3 +83,16 @@ suite "Test SequenceRecord operation":
         records.add s
 
       check records.len == 1
+
+  test "Write a bunch of records as a FASTA through filename":
+    let multiRecords: seq[SequenceRecord] = @[dnaRecord, dnaRecord]
+
+    tmpOutput[1].write(multiRecords, "fasta")
+
+    check existsFile(tmpOutput[0])
+
+    var fastaFile: seq[string]
+    for line in tmpOutput[0].lines:
+      fastaFile.add line
+
+    check fastaFile == @[">Sample", "ACGTGGGGT", ">Sample", "ACGTGGGGT"]

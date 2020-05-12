@@ -64,7 +64,7 @@ proc write*(fHandler: File, record: SequenceRecord, kind: string="fasta") =
   ##   >My DNA sequence
   ##   TGCACCCCA
   ##
-  ##   import ../bio  # You should `import bio/fasta`
+  ##   `import bio/fasta`
   ##
   ##   let mySeq = initDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
@@ -84,8 +84,31 @@ proc write*(fHandler: File, record: SequenceRecord, kind: string="fasta") =
   fHandler.write('\n')
   fHandler.flushFile
 
+proc write*(fHandler: File, records: seq[SequenceRecord], kind: string="fasta") =
+  ## A shortcut to avoid the explicit cycle to write a `seq` of
+  ## `SequenceRecords<sequences.html#SequenceRecord>`_
+  ##
+  ## .. code-block::
+  ##   >My DNA sequence
+  ##   TGCACCCCA
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let mySeqA = initDna("TGCACCCCA")
+  ##   let mySeqB = initDna("GTGAGAGTG")
+  ##   let myRecA = SequenceRecord(name: "My DNA sequence", record: mySeqA)
+  ##   let myRecB = SequenceRecord(name: "My DNA sequence", record: mySeqB)
+  ##
+  ##   block:
+  ##     let fastaOut = open("myOutput.fasta", fmWrite)
+  ##     defer: fastaOut.close
+  ##     fastaOut.write(@[myRecA, myRecB])
+  ##
+  for sr in records:
+    fHandler.write(sr, kind)
+
 proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
-  ## Same as `write-through-handler proc<#write,SequenceRecord,string,string>`_
+  ## Same as `write-through-handler proc<#write,File,SequenceRecord,string>`_
   ## but you only need to point out the name of the file.
   ##
   ## .. code-block::
@@ -94,9 +117,34 @@ proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
   ##
   ##   let mySeq = initDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
-
+  ##
   ##   myRec.write("myOutput.fasta")
+  ##
   let fHandler: File = open(fName, fmWrite)
   defer: fHandler.close()
 
   fHandler.write(record, kind)
+
+proc write*(records: seq[SequenceRecord], fName: string, kind: string="fasta") =
+  ## Same as `write-through-handler proc<#write,File,seq[SequenceRecord],string>`_
+  ## but you only need to point out the name of the file.
+  ##
+  ## .. code-block::
+  ##   >My DNA sequence
+  ##   TGCACCCCA
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let mySeqA = initDna("TGCACCCCA")
+  ##   let mySeqB = initDna("GTGAGAGTG")
+  ##   let myRecA = SequenceRecord(name: "My DNA sequence", record: mySeqA)
+  ##   let myRecB = SequenceRecord(name: "My DNA sequence", record: mySeqB)
+  ##
+  ##   myRecs = @[myRecA, myRecB]
+  ##   myRecs.write("myOutput.fasta")
+  ##
+  let fHandler: File = open(fName, fmWrite)
+  defer: fHandler.close()
+
+  for record in records:
+    fHandler.write(record, kind)

@@ -19,7 +19,7 @@ suite "Test SequenceRecord operation":
     removeFile(tmpOutput[0])
 
   test "Write records as a FASTA through filename":
-    dnaRecord.write(tmpOutput[0], "fasta")
+    dnaRecord.dumpTo(tmpOutput[0], "fasta")
 
     check existsFile(tmpOutput[0])
 
@@ -28,7 +28,7 @@ suite "Test SequenceRecord operation":
     check fastaFile == @[">Sample", "ACGTGGGGT"]
 
   test "Write records as a FASTA through handler":
-    tmpOutput[1].write(dnaRecord, "fasta")
+    dnaRecord.dumpTo(tmpOutput[1], "fasta")
 
     let fastaFile = tmpOutput[0].readLines(2)
 
@@ -36,7 +36,7 @@ suite "Test SequenceRecord operation":
 
   test "Automatically wrap the long lines to 60 chars":
     dna.chain = repeat(dna.chain, 8)
-    tmpOutput[1].write(dnaRecord, "fasta")
+    dnaRecord.dumpTo(tmpOutput[1], "fasta")
 
     let fastaFile = tmpOutput[0].readLines(3)
 
@@ -84,10 +84,10 @@ suite "Test SequenceRecord operation":
 
       check records.len == 1
 
-  test "Write a bunch of records as a FASTA through filename":
+  test "Write a bunch of records as a FASTA through filehandler":
     let multiRecords: seq[SequenceRecord] = @[dnaRecord, dnaRecord]
 
-    tmpOutput[1].write(multiRecords, "fasta")
+    multiRecords.dumpTo(tmpOutput[1], "fasta")
 
     check existsFile(tmpOutput[0])
 

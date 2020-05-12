@@ -50,7 +50,7 @@ proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   for sequence in sequences(fName):
     result.add sequence
 
-proc write*(fHandler: File, record: SequenceRecord, kind: string="fasta") =
+proc dumpTo*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   ## Write a `SequenceRecords<sequences.html#SequenceRecord>`_ to `fHandler`,
   ## wrapping the sequence by 60 positions.
   ## The name of the SequenceRecord remains untouched.
@@ -72,7 +72,7 @@ proc write*(fHandler: File, record: SequenceRecord, kind: string="fasta") =
   ##   block:
   ##     let fastaOut = open("myOutput.fasta", fmWrite)
   ##     defer: fastaOut.close
-  ##     fastaOut.write(myRec)
+  ##     myRec.dumpTo(fastaOut)
   ##
   const wrapSize: int = 60
   fHandler.write(">", record.name)
@@ -84,7 +84,7 @@ proc write*(fHandler: File, record: SequenceRecord, kind: string="fasta") =
   fHandler.write('\n')
   fHandler.flushFile
 
-proc write*(fHandler: File, records: seq[SequenceRecord], kind: string="fasta") =
+proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: string="fasta") =
   ## A shortcut to avoid the explicit cycle to write a `seq` of
   ## `SequenceRecords<sequences.html#SequenceRecord>`_
   ##
@@ -102,13 +102,13 @@ proc write*(fHandler: File, records: seq[SequenceRecord], kind: string="fasta") 
   ##   block:
   ##     let fastaOut = open("myOutput.fasta", fmWrite)
   ##     defer: fastaOut.close
-  ##     fastaOut.write(@[myRecA, myRecB])
+  ##     @[myRecA, myRecB].dumpTo(fastaOut)
   ##
   for sr in records:
-    fHandler.write(sr, kind)
+    sr.dumpTo(fHandler, kind)
 
-proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
-  ## Same as `write-through-handler proc<#write,File,SequenceRecord,string>`_
+proc dumpTo*(record: SequenceRecord, fName: string, kind: string="fasta") =
+  ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,File,string>`_
   ## but you only need to point out the name of the file.
   ##
   ## .. code-block::
@@ -118,15 +118,15 @@ proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
   ##   let mySeq = initDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
   ##
-  ##   myRec.write("myOutput.fasta")
+  ##   myRec.dumpTo("myOutput.fasta")
   ##
   let fHandler: File = open(fName, fmWrite)
   defer: fHandler.close()
 
-  fHandler.write(record, kind)
+  record.dumpTo(fHandler, kind)
 
-proc write*(records: seq[SequenceRecord], fName: string, kind: string="fasta") =
-  ## Same as `write-through-handler proc<#write,File,seq[SequenceRecord],string>`_
+proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: string="fasta") =
+  ## Same as `write-through-handler proc<#dumpTo,seq[SequenceRecord],File,string>`_
   ## but you only need to point out the name of the file.
   ##
   ## .. code-block::
@@ -141,10 +141,10 @@ proc write*(records: seq[SequenceRecord], fName: string, kind: string="fasta") =
   ##   let myRecB = SequenceRecord(name: "My DNA sequence", record: mySeqB)
   ##
   ##   myRecs = @[myRecA, myRecB]
-  ##   myRecs.write("myOutput.fasta")
+  ##   myRecs.dumpTo("myOutput.fasta")
   ##
   let fHandler: File = open(fName, fmWrite)
   defer: fHandler.close()
 
   for record in records:
-    fHandler.write(record, kind)
+    record.dumpTo(fHandler, kind)

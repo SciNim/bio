@@ -1,7 +1,7 @@
 import strformat
 # Package
 
-version       = "0.1.0"
+version       = "0.2.0"
 author        = "Xabier Bello"
 description   = "A set of tools to do biological operations."
 license       = "MIT"
@@ -29,6 +29,7 @@ task docs, "Deploy doc html + search index to public/ directory":
     putEnv("nimversion", system.NimVersion)
     putEnv("libversion", version)
     selfExec(&"rst2html ../docs/index.rst")
+    selfExec(&"rst2html ../docs/tutorial.rst")
     selfExec("doc --project --index:on ../src/bio/sequences.nim")
     selfExec("doc --project --index:on ../src/bio/fasta.nim")
     selfExec("buildIndex -o:theindex.html .")

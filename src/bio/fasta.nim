@@ -1,16 +1,15 @@
+## :Author: |author|
+## :Version: |libversion|
 import strutils
 
 import sequences
 export sequences
 
-# TODO: export sequences to make it available only importing thi
-#
-
 
 iterator sequences*(fName: string, kind: string="fasta"):
   SequenceRecord {.inline.} =
-  ## Iterate through all the sequences in a given filename, yielding
-  ## `SequenceRecords`.
+  ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
+  ## filename, yielding `SequenceRecords`.
   ##
   ## .. code-block::
   ##
@@ -36,9 +35,11 @@ iterator sequences*(fName: string, kind: string="fasta"):
       sequence.add line
 
 proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
-  ## Load a sequence of files from a filename.
+  ## Load a `seq` of `SequenceRecords<sequences.html#SequenceRecord>`_ from a
+  ## filename.
   ##
-  ## If you need an interator over a file, use the `sequences iterator<#sequences.i,string,string>`_
+  ## *Careful*: this loads **all** the file at once. If you need an interator
+  ## over the file, use the `sequences iterator<#sequences.i,string,string>`_
   ##
   ## .. code-block::
   ##
@@ -49,8 +50,9 @@ proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   for sequence in sequences(fName):
     result.add sequence
 
-proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
-  ## Write a SequenceRecord to fHandler, wrapping the sequence by 60 positions.
+proc write*(fHandler: File, record: SequenceRecord, kind: string="fasta") =
+  ## Write a `SequenceRecords<sequences.html#SequenceRecord>`_ to `fHandler`,
+  ## wrapping the sequence by 60 positions.
   ## The name of the SequenceRecord remains untouched.
   ##
   ## TBD: `kind` is a string as in "fasta", to support different formats.
@@ -64,12 +66,14 @@ proc write*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   ##
   ##   import ../bio  # You should `import bio/fasta`
   ##
-  ##   let fastaOut = open("myOutput.fasta", fmWrite)
   ##   let mySeq = initDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
   ##
-  ##   myRec.write(fastaOut)
-  ##   fastaOut.close()
+  ##   block:
+  ##     let fastaOut = open("myOutput.fasta", fmWrite)
+  ##     defer: fastaOut.close
+  ##     fastaOut.write(myRec)
+  ##
   const wrapSize: int = 60
   fHandler.write(">", record.name)
 
@@ -95,4 +99,4 @@ proc write*(record: SequenceRecord, fName: string, kind: string="fasta") =
   let fHandler: File = open(fName, fmWrite)
   defer: fHandler.close()
 
-  write(record, fHandler, kind)
+  fHandler.write(record, kind)

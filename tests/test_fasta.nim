@@ -10,7 +10,7 @@ import bio/fasta
 
 suite "Test SequenceRecord operation":
   setup:
-    var dna = Sequence(chain: "ACGTGGGGT", class: "DNA")
+    var dna = Sequence(chain: "ACGTGGGGT", class: scDna)
     var dnaRecord = SequenceRecord(record: dna, name: "Sample")
     var tmpOutput: (string, File) = mkstemp("tests/file_")
 
@@ -28,7 +28,7 @@ suite "Test SequenceRecord operation":
     check fastaFile == @[">Sample", "ACGTGGGGT"]
 
   test "Write records as a FASTA through handler":
-    dnaRecord.write(tmpOutput[1], "fasta")
+    tmpOutput[1].write(dnaRecord, "fasta")
 
     let fastaFile = tmpOutput[0].readLines(2)
 
@@ -36,7 +36,7 @@ suite "Test SequenceRecord operation":
 
   test "Automatically wrap the long lines to 60 chars":
     dna.chain = repeat(dna.chain, 8)
-    dnaRecord.write(tmpOutput[1], "fasta")
+    tmpOutput[1].write(dnaRecord, "fasta")
 
     let fastaFile = tmpOutput[0].readLines(3)
 
@@ -53,7 +53,7 @@ suite "Test SequenceRecord operation":
     check records[1].name == "Second sequence"
     check records[0].record.chain.len == 120
     check records[1].record.chain.len == 120
-    check records[0].record of Dna
+    check records[0].record.class == scDna
 
   test "Load record from FASTA through iterator + filename":
     var records: seq[SequenceRecord]
@@ -66,7 +66,7 @@ suite "Test SequenceRecord operation":
     check records[1].name == "Second sequence"
     check records[0].record.chain.len == 120
     check records[1].record.chain.len == 120
-    check records[0].record of Dna
+    check records[0].record.class == scDna
 
   test "Load records from FASTA: special cases":
     test "The empty file: returns empty seq":

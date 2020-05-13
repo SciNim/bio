@@ -54,10 +54,10 @@ Nimble install the packages at ~/.nimble/pkgs/bio-|libversion| (UNIX) or at
 
     $ nimble docs
 
-If everything goes smoothly, you will get a local copy of the docs at
-`htmldocs`, in sync with your version, that you can browse opening
-`htmldocs/index.html`. This path is self-contained, i.e. you can move it
-wherever you like and it will work. Even if the library updates and the docs
+Doctests will be run and if everything goes smoothly, you will get a local copy
+of the docs at `htmldocs/`, in sync with your version, that you can browse
+opening `htmldocs/index.html`. This path is self-contained, i.e. you can move
+it wherever you like and it will work. Even if the library updates and the docs
 changes, your local copy will be intact.
 
 If you prefer the latests online version, go to [TBD: online docs].

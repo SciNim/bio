@@ -61,9 +61,6 @@ proc dumpTo*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   ## To write a FASTA file `myOutput.fasta` with the contents:
   ##
   ## .. code-block::
-  ##   >My DNA sequence
-  ##   TGCACCCCA
-  ##
   ##   `import bio/fasta`
   ##
   ##   let mySeq = newDna("TGCACCCCA")
@@ -89,9 +86,6 @@ proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: string="fasta")
   ## `SequenceRecords<sequences.html#SequenceRecord>`_
   ##
   ## .. code-block::
-  ##   >My DNA sequence
-  ##   TGCACCCCA
-  ##
   ##   import bio/fasta
   ##
   ##   let mySeqA = newDna("TGCACCCCA")
@@ -111,8 +105,9 @@ proc dumpTo*(record: SequenceRecord, fName: string, kind: string="fasta") =
   ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,File,string>`_
   ## but you only need to point out the name of the file.
   ##
-  ## .. code-block::
+  ## If the file exists, it will be silently overwritten.
   ##
+  ## .. code-block::
   ##   import bio/fasta
   ##
   ##   let mySeq = newDna("TGCACCCCA")
@@ -129,10 +124,9 @@ proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: string="fasta") 
   ## Same as `write-through-handler proc<#dumpTo,seq[SequenceRecord],File,string>`_
   ## but you only need to point out the name of the file.
   ##
-  ## .. code-block::
-  ##   >My DNA sequence
-  ##   TGCACCCCA
+  ## If the file exists, it will be silently overwritten.
   ##
+  ## .. code-block::
   ##   import bio/fasta
   ##
   ##   let mySeqA = newDna("TGCACCCCA")

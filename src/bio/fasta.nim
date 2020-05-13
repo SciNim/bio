@@ -66,7 +66,7 @@ proc dumpTo*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   ##
   ##   `import bio/fasta`
   ##
-  ##   let mySeq = initDna("TGCACCCCA")
+  ##   let mySeq = newDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
   ##
   ##   block:
@@ -94,8 +94,8 @@ proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: string="fasta")
   ##
   ##   import bio/fasta
   ##
-  ##   let mySeqA = initDna("TGCACCCCA")
-  ##   let mySeqB = initDna("GTGAGAGTG")
+  ##   let mySeqA = newDna("TGCACCCCA")
+  ##   let mySeqB = newDna("GTGAGAGTG")
   ##   let myRecA = SequenceRecord(name: "My DNA sequence", record: mySeqA)
   ##   let myRecB = SequenceRecord(name: "My DNA sequence", record: mySeqB)
   ##
@@ -115,7 +115,7 @@ proc dumpTo*(record: SequenceRecord, fName: string, kind: string="fasta") =
   ##
   ##   import bio/fasta
   ##
-  ##   let mySeq = initDna("TGCACCCCA")
+  ##   let mySeq = newDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
   ##
   ##   myRec.dumpTo("myOutput.fasta")
@@ -135,8 +135,8 @@ proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: string="fasta") 
   ##
   ##   import bio/fasta
   ##
-  ##   let mySeqA = initDna("TGCACCCCA")
-  ##   let mySeqB = initDna("GTGAGAGTG")
+  ##   let mySeqA = newDna("TGCACCCCA")
+  ##   let mySeqB = newDna("GTGAGAGTG")
   ##   let myRecA = SequenceRecord(name: "My DNA sequence", record: mySeqA)
   ##   let myRecB = SequenceRecord(name: "My DNA sequence", record: mySeqB)
   ##

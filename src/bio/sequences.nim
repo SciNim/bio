@@ -29,27 +29,27 @@ type
     name*: string
     record*: Sequence
 
-proc initDna*(chain: string): Sequence =
+proc newDna*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class
   ## "DNA".
   runnableExamples:
-    let dna: Sequence = initDna("TGCACCCCA")
+    let dna: Sequence = newDna("TGCACCCCA")
     doAssert dna.class == scDna
   Sequence(chain: chain, class: scDna)
 
-proc initRna*(chain: string): Sequence =
+proc newRna*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class
   ## "RNA".
   runnableExamples:
-    let rna: Sequence = initRna("ACGUGGGGU")
+    let rna: Sequence = newRna("ACGUGGGGU")
     doAssert rna.class == scRna
   Sequence(chain: chain, class: scRna)
 
-proc initProtein*(chain: string): Sequence =
+proc newProtein*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class
   ## "Protein".
   runnableExamples:
-    let protein: Sequence = initProtein("TWG")
+    let protein: Sequence = newProtein("TWG")
     doAssert protein.class == scProtein
   Sequence(chain: chain, class: scProtein)
 
@@ -59,13 +59,13 @@ proc `$`*(s: Sequence): string =
   ##
   ## If you need the whole sequence, access `Sequence.chain<#Sequence>`_ directly
   runnableExamples:
-    let rna: Sequence = initRna("ACGUGGGGU")
+    let rna: Sequence = newRna("ACGUGGGGU")
     doAssert $rna == "RNA: ACGUGGGGU"
 
   runnableExamples:
     import strutils
 
-    let rna: Sequence = initRna("ACGUGGGGU".repeat(10))
+    let rna: Sequence = newRna("ACGUGGGGU".repeat(10))
     doAssert $rna ==
       "RNA: ACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGG…"
 
@@ -80,7 +80,7 @@ proc `$`*(sr: SequenceRecord): string =
   ## Same as the `$<#$,Sequence>`_ for `Sequence<#Sequence>`_, but adding the
   ## `name` of the `SequenceRecord<#SequenceRecord>`_.
   runnableExamples:
-    let rna: Sequence = initRna("ACGUGGGGU")
+    let rna: Sequence = newRna("ACGUGGGGU")
     let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
     doAssert $sequenceRecord == "MyRna [RNA: ACGUGGGGU]"
 
@@ -92,15 +92,15 @@ proc `?=`*(a, b: Sequence): bool =
   ## Compare two `Sequence<#Sequence>`_. `true` if both `class` and `chain` are
   ## the same.
   runnableExamples:
-    doAssert initDna("AAACGGG") ?= Sequence(chain: "AAACGGG", class: scDna)
-    doAssert (initDna("AAACGGG") ?= initRna("AAACGGG")) == false
+    doAssert newDna("AAACGGG") ?= Sequence(chain: "AAACGGG", class: scDna)
+    doAssert (newDna("AAACGGG") ?= newRna("AAACGGG")) == false
   (a.chain == b.chain) and (a.class == b.class)
 
 proc `[]`*(sr: SequenceRecord, i: int|BackwardsIndex): char =
   ## Gets a position of a `SequenceRecord<#SequenceRecord>`_ as if it was a
   ## string.
   runnableExamples:
-    let rna: Sequence = initRna("ACGUGGGGU")
+    let rna: Sequence = newRna("ACGUGGGGU")
     let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
 
     doAssert sequenceRecord[0] == 'A'
@@ -111,7 +111,7 @@ proc `[]`*(sr: SequenceRecord, s: HSlice): SequenceRecord =
   ## Gets a slice of a `SequenceRecord<#SequenceRecord>`_, returning a new
   ## SequenceRecord.
   runnableExamples:
-    let rna: Sequence = initRna("ACGUGGGGU")
+    let rna: Sequence = newRna("ACGUGGGGU")
     let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
 
     doAssert sequenceRecord[1..^2].record.chain == "CGUGGGG"
@@ -125,13 +125,13 @@ proc `[]`*(sr: SequenceRecord, s: HSlice): SequenceRecord =
 proc len*(s: Sequence): int =
   ## Get the length of a `Sequence<#Sequence>`_ chain.
   runnableExamples:
-    doAssert len(initDna("AAACGGG")) == len("AAACGGG")
+    doAssert len(newDna("AAACGGG")) == len("AAACGGG")
   len(s.chain)
 
 proc len*(sr: SequenceRecord): int =
   ## Get the length of a `SequenceRecord<#SequenceRecord>`_ chain.
   runnableExamples:
-    let s = initDna("ACTGGTGGA")
+    let s = newDna("ACTGGTGGA")
     let sequenceRecord = SequenceRecord(name: "SR1", record: s)
     doAssert len("ACTGGTGGA") == len(sequenceRecord)
   len(sr.record)
@@ -145,9 +145,9 @@ proc guess*(s: string): Sequence =
   ##
   ## If the class cannot be inferred, a generic Sequence is returned.
   runnableExamples:
-    doAssert guess("ATCGGCATCG") ?= initDna("ATCGGCATCG")
-    doAssert guess("AUCGGCAUCG") ?= initRna("AUCGGCAUCG")
-    doAssert guess("FSYWLSCPIK") ?= initProtein("FSYWLSCPIK")
+    doAssert guess("ATCGGCATCG") ?= newDna("ATCGGCATCG")
+    doAssert guess("AUCGGCAUCG") ?= newRna("AUCGGCAUCG")
+    doAssert guess("FSYWLSCPIK") ?= newProtein("FSYWLSCPIK")
   result = Sequence(chain: s, class: scSequence)
   if s.len < 5: return  # Sequence too short to guess
 
@@ -172,7 +172,7 @@ proc guess*(s: string): Sequence =
 proc complement*(s: Sequence): Sequence =
   ## Return a new `Dna or Rna<#Sequence>`_ with the complement sequence.
   runnableExamples:
-    doAssert initDna("TGCACCCCA").complement.chain == "ACGTGGGGT"
+    doAssert newDna("TGCACCCCA").complement.chain == "ACGTGGGGT"
   result = Sequence()
   result.class = s.class
 
@@ -189,7 +189,7 @@ proc complement*(s: Sequence): Sequence =
 proc reverseComplement*(s: Sequence): Sequence =
   ## Return a new `Dna or Rna<#Sequence>`_ with the reverse complement sequence.
   runnableExamples:
-    doAssert initDna("ACGTGGGGT").reverseComplement.chain == "ACCCCACGT"
+    doAssert newDna("ACGTGGGGT").reverseComplement.chain == "ACCCCACGT"
 
   result = s.complement()
 
@@ -202,7 +202,7 @@ proc reverseComplement*(s: Sequence): Sequence =
 proc transcript*(s: Sequence): Sequence =
   ## Return a new `Rna<#Sequence>`_ with the transcribed sequence.
   runnableExamples:
-    doAssert initDna("ACGTGGGGT").transcript.chain == "ACGUGGGGU"
+    doAssert newDna("ACGTGGGGT").transcript.chain == "ACGUGGGGU"
 
   result = Sequence()
   case s.class
@@ -220,7 +220,7 @@ proc transcript*(s: Sequence): Sequence =
 proc backTranscribe*(s: Sequence): Sequence =
   ## Return a new `Dna<#Sequence>`_ with the sequence transcribed from RNA.
   runnableExamples:
-    doAssert initRna("ACGUGGGGU").backTranscribe.chain == "ACGTGGGGT"
+    doAssert newRna("ACGUGGGGU").backTranscribe.chain == "ACGTGGGGT"
 
   result = Sequence()
   case s.class
@@ -242,11 +242,11 @@ proc translate*(s: Sequence): Sequence =
   ## stop codons as `*`.
   ##
   runnableExamples:
-    doAssert initDna("ACGTGGGGT").translate.chain == "TWG"
+    doAssert newDna("ACGTGGGGT").translate.chain == "TWG"
 
-    doAssert initDna("ACGT--GGGGT").translate.chain == "TXGX"
+    doAssert newDna("ACGT--GGGGT").translate.chain == "TXGX"
 
-    doAssert initDna("ACGTAAGGGGT").translate.chain == "T*GX"
+    doAssert newDna("ACGTAAGGGGT").translate.chain == "T*GX"
 
   result = Sequence()
   var codon: string

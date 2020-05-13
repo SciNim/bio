@@ -8,9 +8,9 @@ import bio/sequences
 suite "Test Sequence operation":
   setup:
     var dna = Sequence(chain: "ACGTGGGGT", class: scDna)
-    let dnaT: Sequence = initDna("ACGTGGGGT")
-    let rnaT: Sequence = initRna("ACGUGGGGU")
-    let proteinT: Sequence = initProtein("TWG")
+    let dnaT: Sequence = newDna("ACGTGGGGT")
+    let rnaT: Sequence = newRna("ACGUGGGGU")
+    let proteinT: Sequence = newProtein("TWG")
 
   test "Echo for the objects":
     check $dnaT == "DNA: ACGTGGGGT"
@@ -37,10 +37,10 @@ suite "Test Sequence operation":
     check proteinT.class == scProtein
 
   test "DNA complement":
-    check dnaT.complement ?= initDna("TGCACCCCA")
+    check dnaT.complement ?= newDna("TGCACCCCA")
 
   test "DNA reverse complement":
-    check dnaT.reverseComplement ?= initDna("ACCCCACGT")
+    check dnaT.reverseComplement ?= newDna("ACCCCACGT")
 
   test "DNA translation":
     ## Remember: DNA to protein
@@ -48,11 +48,11 @@ suite "Test Sequence operation":
 
   test "DNA translations with indefinitions":
     # Check the indefinitions
-    let oddDna: Sequence = initDna("ACGTGGGGTT")
-    check oddDna.translate ?= initProtein("TWGX")
+    let oddDna: Sequence = newDna("ACGTGGGGTT")
+    check oddDna.translate ?= newProtein("TWGX")
 
-    let delDna: Sequence = initDna("ACGT-GGGT")
-    check delDna.translate ?= initProtein("TXG")
+    let delDna: Sequence = newDna("ACGT-GGGT")
+    check delDna.translate ?= newProtein("TXG")
 
   test "DNA transcription":
     ## Remember: DNA to RNA
@@ -63,18 +63,18 @@ suite "Test Sequence operation":
     check rnaT.backTranscribe ?= dnaT
 
   test "RNA complement":
-    check rnaT.complement ?= initRna("UGCACCCCA")
+    check rnaT.complement ?= newRna("UGCACCCCA")
 
   test "RNA reverse complement":
-    check rnaT.reverseComplement ?= initRna("ACCCCACGU")
+    check rnaT.reverseComplement ?= newRna("ACCCCACGU")
 
   test "RNA translation":
     check rnaT.translate ?= proteinT
 
   test "Sequence class guessed":
-    check guess(dnaT.chain) ?= initDna("ACGTGGGGT")
-    check guess(rnaT.chain) ?= initRna("ACGUGGGGU")
-    check guess("FSYWLSCPIK") ?= initProtein("FSYWLSCPIK")
+    check guess(dnaT.chain) ?= newDna("ACGTGGGGT")
+    check guess(rnaT.chain) ?= newRna("ACGUGGGGU")
+    check guess("FSYWLSCPIK") ?= newProtein("FSYWLSCPIK")
 
     check guess(proteinT.chain) ?= Sequence(chain: proteinT.chain, class: scSequence)
 
@@ -90,15 +90,15 @@ suite "Test Sequence operation":
     let myDna = guess("ACGTGGGGT")
 
     check myDna.complement ?= dnaT.complement
-    check myDna.transcript ?= initRna("ACGUGGGGU")
-    check myDna.translate ?= initProtein("TWG")
+    check myDna.transcript ?= newRna("ACGUGGGGU")
+    check myDna.translate ?= newProtein("TWG")
 
   test "Operations over sequences guessed as RNA":
     let myRna = guess("ACGUGGGGU")
 
     echo myRna.complement
-    check myRna.complement ?= initRna("UGCACCCCA")
-    check myRna.backTranscribe ?= initDna("ACGTGGGGT")
+    check myRna.complement ?= newRna("UGCACCCCA")
+    check myRna.backTranscribe ?= newDna("ACGTGGGGT")
 
   test "Sequence len":
     check dnaT.len == 9
@@ -106,14 +106,14 @@ suite "Test Sequence operation":
 
 suite "Test more complex sequence operations":
   setup:
-    let dnaShifted: Sequence = initDna("ACGT--GGGGT")
-    let rnaShifted: Sequence = initRna("ACGU--GGGGU")
-    let dnaGapped: Sequence = initDna("ACG---GGGGT")
-    let dnaStops: Sequence = initDna("ACGTAAGGGGT")
-    let dnaComplement: Sequence = initDna("ACCCC--ACGT")
-    let proteinShifted: Sequence = initProtein("TXGX")
-    let proteinGapped: Sequence = initProtein("T-GX")
-    let proteinStops: Sequence = initProtein("T*GX")
+    let dnaShifted: Sequence = newDna("ACGT--GGGGT")
+    let rnaShifted: Sequence = newRna("ACGU--GGGGU")
+    let dnaGapped: Sequence = newDna("ACG---GGGGT")
+    let dnaStops: Sequence = newDna("ACGTAAGGGGT")
+    let dnaComplement: Sequence = newDna("ACCCC--ACGT")
+    let proteinShifted: Sequence = newProtein("TXGX")
+    let proteinGapped: Sequence = newProtein("T-GX")
+    let proteinStops: Sequence = newProtein("T*GX")
 
   test "DNA translation with gaps":
     check dnaShifted.translate ?= proteinShifted
@@ -133,7 +133,7 @@ suite "Test more complex sequence operations":
 
 suite "Test sequenceRecord operations":
   setup:
-    let sequence: Sequence = initDna("ACTGGTGGA")
+    let sequence: Sequence = newDna("ACTGGTGGA")
     let sr: SequenceRecord = SequenceRecord(name: "SR1",
                                             record: sequence)
 

@@ -1,6 +1,8 @@
 What am I
 =========
 
+[TDB: A brief self description]
+
 How to install
 ==============
 
@@ -13,7 +15,7 @@ How to get/read the docs
 
 With the nimble tool, as easy as typing in the root of the repo:
 
-  $ nimble docs
+  $ nimble repodocs
 
 The script creates a "htmldocs" directory, scans the source code for docs,
 runs the embedded doc-tests and finally build the documentation as a webpage.

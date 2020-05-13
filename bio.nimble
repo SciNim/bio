@@ -30,8 +30,8 @@ task docs, "Deploy doc html + search index to public/ directory":
     putEnv("libversion", version)
     selfExec(&"rst2html ../docs/index.rst")
     selfExec(&"rst2html ../docs/tutorial.rst")
-    selfExec("doc --project --index:on ../src/bio/sequences.nim")
-    selfExec("doc --project --index:on ../src/bio/fasta.nim")
+    selfExec("doc --project --index:on ../bio/sequences.nim")
+    selfExec("doc --project --index:on ../bio/fasta.nim")
     selfExec("buildIndex -o:theindex.html .")
     # Download the JS only if it's newest than the local one.
     exec("curl -LO -z dochack.js " & docHackJsSource)

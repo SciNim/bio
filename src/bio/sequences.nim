@@ -96,6 +96,15 @@ proc `?=`*(a, b: Sequence): bool =
     doAssert (newDna("AAACGGG") ?= newRna("AAACGGG")) == false
   (a.chain == b.chain) and (a.class == b.class)
 
+proc `[]`*(s: Sequence, i: int|BackwardsIndex): char =
+  ## Gets a position of a `Sequence<#Sequence>`_ as if it was a string.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+
+    doAssert rna[0] == 'A'
+    doAssert rna[^1] == 'U'
+  s.chain[i]
+
 proc `[]`*(sr: SequenceRecord, i: int|BackwardsIndex): char =
   ## Gets a position of a `SequenceRecord<#SequenceRecord>`_ as if it was a
   ## string.
@@ -105,7 +114,7 @@ proc `[]`*(sr: SequenceRecord, i: int|BackwardsIndex): char =
 
     doAssert sequenceRecord[0] == 'A'
     doAssert sequenceRecord[^1] == 'U'
-  sr.record.chain[i]
+  sr.record[i]
 
 proc `[]`*(sr: SequenceRecord, s: HSlice): SequenceRecord =
   ## Gets a slice of a `SequenceRecord<#SequenceRecord>`_, returning a new
@@ -121,6 +130,39 @@ proc `[]`*(sr: SequenceRecord, s: HSlice): SequenceRecord =
   result.name = &"{sr.name} ({s.a} .. {s.b})"
 
   return result
+
+proc `[]=`*(s: Sequence, i: int|BackwardsIndex, val: char) =
+  ## Replaces a position in the chain of a `Sequence<#Sequence>`_.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+
+    rna[0] = 'U'
+    doAssert rna.chain == "UCGUGGGGU"
+
+  s.chain[i] = val
+
+proc `[]=`*(sr: SequenceRecord, i: int|BackwardsIndex, val: char) =
+  ## Replaces a position in the chain of a `SequenceRecord<#SequenceRecord>`_.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
+
+    sequenceRecord[0] = 'U'
+    doAssert sequenceRecord.record.chain == "UCGUGGGGU"
+
+  sr.record[i] = val
+
+proc `[]=`*[T, U](s: Sequence, x: HSlice[T, U], b: string) =
+  ## Replaces a stretch in the chain of a `Sequence<#Sequence>`_.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+
+    rna[1 .. 3] = "AT"
+    doAssert rna.chain == "AATGGGGU"
+
+    rna[^2 .. ^1] = "TT"
+    doAssert rna.chain == "AATGGGTT"
+  s.chain[x] = b
 
 iterator items*(s: Sequence): char =
   ## Iterates a `Sequence<#Sequence>`_ yielding `chars` from the chain.
@@ -151,6 +193,47 @@ iterator items*(sr: SequenceRecord): char =
 
   for c in sr.record:
     yield c
+
+iterator pairs*(s: Sequence): tuple[a: int, b: char] =
+  ## Iterates a `Sequence<#Sequence>`_ yielding the position and the char in a
+  ## tuple.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+
+    var count: seq[int]
+    var newSeq: string
+    for i, position in rna:
+      count.add i
+      newSeq.add position
+
+    doAssert newSeq == "ACGUGGGGU"
+    doAssert count == @[0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+  var i: int = 0
+  for c in s:
+    yield (a: i, b: c)
+    inc i
+
+iterator pairs*(sr: SequenceRecord): tuple[a: int, b: char] =
+  ## Iterates a `SequenceRecord<#SequenceRecord>`_ yielding the position and
+  ## the char in a tuple.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+    let srRna = SequenceRecord(name: "MyRna", record: rna)
+
+    var count: seq[int]
+    var newSeq: string
+    for i, position in srRna:
+      count.add i
+      newSeq.add position
+
+    doAssert newSeq == "ACGUGGGGU"
+    doAssert count == @[0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+  var i: int = 0
+  for c in sr.record:
+    yield (a: i, b: c)
+    inc i
 
 proc len*(s: Sequence): int =
   ## Get the length of a `Sequence<#Sequence>`_ chain.
@@ -295,4 +378,3 @@ proc translate*(s: Sequence): Sequence =
   else:
     result.chain = s.chain  # Silent or noisy ??
     result.class = s.class
-

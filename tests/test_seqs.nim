@@ -96,13 +96,16 @@ suite "Test Sequence operation":
   test "Operations over sequences guessed as RNA":
     let myRna = guess("ACGUGGGGU")
 
-    echo myRna.complement
     check myRna.complement ?= newRna("UGCACCCCA")
     check myRna.backTranscribe ?= newDna("ACGTGGGGT")
 
   test "Sequence len":
     check dnaT.len == 9
     check proteinT.len == 3
+
+  test "Sequence point getting":
+    check dna[2] == 'G'
+    check dna[^1] == 'T'
 
   test "Sequence nucleotide iteration":
     var newChain: string
@@ -111,6 +114,31 @@ suite "Test Sequence operation":
       newChain.add nucl
 
     check newChain == "ACGTGGGGT"
+
+  test "Sequence nucleotide iteration by pairs":
+    var newChain: string
+    var count: seq[int]
+
+    for i, position in dna:
+      newChain.add position
+      count.add i
+
+    check count == @[0, 1, 2, 3, 4, 5, 6, 7, 8]
+    doAssert newChain == dna.chain
+
+  test "Sequence position replacement":
+    dna[0] = 'T'
+    check dna.chain == "TCGTGGGGT"
+
+    dna[^1] = 'A'
+    check dna.chain == "TCGTGGGGA"
+
+  test "Sequence position asignment using HSlices":
+    dna[2 .. ^3] = "AAAA"
+    check dna.chain == "ACAAAAGT"
+
+    dna[2 .. 5] = "T"
+    check dna.chain == "ACTGT"
 
 suite "Test more complex sequence operations":
   setup:
@@ -169,3 +197,21 @@ suite "Test sequenceRecord operations":
       newChain.add nucl
 
     check newChain == "ACTGGTGGA"
+
+  test "SequenceRecord nucleotide iteration by pairs":
+    var newChain: string
+    var count: seq[int]
+
+    for i, nucl in sr:
+      count.add i
+      newChain.add nucl
+
+    check count == @[0, 1, 2, 3, 4, 5, 6, 7, 8]
+    check newChain == "ACTGGTGGA"
+
+  test "SequenceRecord position replacement":
+    sr[0] = 'T'
+    doAssert sr.record.chain == "TCTGGTGGA"
+
+    sr[^1] = 'T'
+    doAssert sr.record.chain == "TCTGGTGGT"

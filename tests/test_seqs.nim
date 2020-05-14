@@ -104,6 +104,14 @@ suite "Test Sequence operation":
     check dnaT.len == 9
     check proteinT.len == 3
 
+  test "Sequence nucleotide iteration":
+    var newChain: string
+
+    for nucl in dna:
+      newChain.add nucl
+
+    check newChain == "ACGTGGGGT"
+
 suite "Test more complex sequence operations":
   setup:
     let dnaShifted: Sequence = newDna("ACGT--GGGGT")
@@ -153,3 +161,11 @@ suite "Test sequenceRecord operations":
     check slice.record.chain == "CTGGTGG"
     check slice.record.class == sequence.class
     check slice.name == sr.name & " (1 .. ^2)"
+
+  test "SequenceRecord nucleotide iteration":
+    var newChain: string
+
+    for nucl in sr:
+      newChain.add nucl
+
+    check newChain == "ACTGGTGGA"

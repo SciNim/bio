@@ -122,6 +122,36 @@ proc `[]`*(sr: SequenceRecord, s: HSlice): SequenceRecord =
 
   return result
 
+iterator items*(s: Sequence): char =
+  ## Iterates a `Sequence<#Sequence>`_ yielding `chars` from the chain.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+
+    var newSeq: string
+    for position in rna:
+      newSeq.add position
+
+    doAssert newSeq == rna.chain
+
+  for c in s.chain:
+    yield c
+
+iterator items*(sr: SequenceRecord): char =
+  ## Iterates a `SequenceRecord<#SequenceRecord>`_ yielding `chars` from the
+  ## chain.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+    let srRna = SequenceRecord(name: "MyRna", record: rna)
+
+    var newSeq: string
+    for position in srRna:
+      newSeq.add position
+
+    doAssert newSeq == rna.chain
+
+  for c in sr.record:
+    yield c
+
 proc len*(s: Sequence): int =
   ## Get the length of a `Sequence<#Sequence>`_ chain.
   runnableExamples:

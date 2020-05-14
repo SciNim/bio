@@ -60,7 +60,7 @@ suite "Test Sequence operation":
 
   test "RNA back transcribe":
     ## Remember: RNA to DNA
-    check rnaT.backTranscribe ?= dnaT
+    check rnaT.backTranscript ?= dnaT
 
   test "RNA complement":
     check rnaT.complement ?= newRna("UGCACCCCA")
@@ -86,6 +86,7 @@ suite "Test Sequence operation":
     check guess("NNNNNNNNNNNNNNNNNNNNNNNNNNNNACTGGTGG").class == scDna
     check guess("XXXXXXXXXXXXXXXXXXXXXXXXXXFSYWLSCPIK").class == scProtein
 
+
   test "Operations over sequences guessed as DNA":
     let myDna = guess("ACGTGGGGT")
 
@@ -97,7 +98,7 @@ suite "Test Sequence operation":
     let myRna = guess("ACGUGGGGU")
 
     check myRna.complement ?= newRna("UGCACCCCA")
-    check myRna.backTranscribe ?= newDna("ACGTGGGGT")
+    check myRna.backTranscript ?= newDna("ACGTGGGGT")
 
   test "Sequence len":
     check dnaT.len == 9
@@ -215,3 +216,33 @@ suite "Test sequenceRecord operations":
 
     sr[^1] = 'T'
     doAssert sr.record.chain == "TCTGGTGGT"
+
+suite "Sequence Catchable Errors":
+  setup:
+    let proteinT: Sequence = newProtein("TWG")
+    let dnaT: Sequence = newDna("ACACTCAGCAT")
+    let rnaT: Sequence = newRna("CACAGUGUGCA")
+
+  test "Protein Translate":
+    expect SequenceClassError:
+      discard proteinT.translate
+
+  test "DNA or Protein Backtranscription":
+    expect SequenceClassError:
+      discard dnaT.backTranscript
+    expect SequenceClassError:
+      discard proteinT.backTranscript
+
+  test "RNA or Protein Transcription":
+    expect SequenceClassError:
+      discard rnaT.transcript
+    expect SequenceClassError:
+      discard proteinT.transcript
+
+  test "Protein reverseComplement":
+    expect SequenceClassError:
+      discard proteinT.reverseComplement
+
+  test "Protein complement":
+    expect SequenceClassError:
+      discard proteinT.complement

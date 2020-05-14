@@ -29,6 +29,8 @@ type
     name*: string
     record*: Sequence
 
+  SequenceClassError* = object of Exception
+
 proc newDna*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class
   ## "DNA".
@@ -297,7 +299,8 @@ proc complement*(s: Sequence): Sequence =
     for base in s.chain:
       result.chain.add(rnaAmbiguousComplement[base])
   else:
-    result.chain = s.chain  # Silent or noisy ??
+    raise newException(SequenceClassError,
+                       &"Operation available only for {scDna} or {scRna}.")
 
 proc reverseComplement*(s: Sequence): Sequence =
   ## Return a new `Dna or Rna<#Sequence>`_ with the reverse complement sequence.
@@ -310,7 +313,8 @@ proc reverseComplement*(s: Sequence): Sequence =
   of scDna, scRna:
     result.chain = reversed(result.chain)
   else:
-    result.chain = s.chain  # Silent or noisy ??
+    raise newException(SequenceClassError,
+                       &"Operation available only for {scDna} or {scRna}.")
 
 proc transcript*(s: Sequence): Sequence =
   ## Return a new `Rna<#Sequence>`_ with the transcribed sequence.
@@ -327,13 +331,13 @@ proc transcript*(s: Sequence): Sequence =
       else:
         result.chain.add(base)
   else:
-    result.class = s.class
-    result.chain = s.chain
+    raise newException(SequenceClassError,
+                       &"Operation available only for {scDna}.")
 
-proc backTranscribe*(s: Sequence): Sequence =
+proc backTranscript*(s: Sequence): Sequence =
   ## Return a new `Dna<#Sequence>`_ with the sequence transcribed from RNA.
   runnableExamples:
-    doAssert newRna("ACGUGGGGU").backTranscribe.chain == "ACGTGGGGT"
+    doAssert newRna("ACGUGGGGU").backTranscript.chain == "ACGTGGGGT"
 
   result = Sequence()
   case s.class
@@ -345,8 +349,8 @@ proc backTranscribe*(s: Sequence): Sequence =
       else:
         result.chain.add(base)
   else:
-    result.class = s.class
-    result.chain = s.chain  # Silent or noisy ??
+    raise newException(SequenceClassError,
+                       &"Operation available only for {scRna}.")
 
 proc translate*(s: Sequence): Sequence =
   ## Return a new `Protein<#Sequence>`_ with the translated sequence.
@@ -374,7 +378,7 @@ proc translate*(s: Sequence): Sequence =
     if codon.len > 0:
       result.chain.add 'X'
   of scRna:
-    result = translate(s.backTranscribe)
+    result = translate(s.backTranscript)
   else:
-    result.chain = s.chain  # Silent or noisy ??
-    result.class = s.class
+    raise newException(SequenceClassError,
+                       &"Operation available only for {scDna} or {scRna}.")

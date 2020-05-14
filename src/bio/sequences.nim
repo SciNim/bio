@@ -125,7 +125,7 @@ proc `[]`*(sr: SequenceRecord, s: HSlice): SequenceRecord =
     let rna: Sequence = newRna("ACGUGGGGU")
     let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
 
-    doAssert sequenceRecord[1..^2].record.chain == "CGUGGGG"
+    doAssert sequenceRecord[1 .. ^2].record.chain == "CGUGGGG"
   result = SequenceRecord()
   let newSeq = Sequence(chain: sr.record.chain[s], class: sr.record.class)
   result.record = newSeq
@@ -241,6 +241,7 @@ proc len*(s: Sequence): int =
   ## Get the length of a `Sequence<#Sequence>`_ chain.
   runnableExamples:
     doAssert len(newDna("AAACGGG")) == len("AAACGGG")
+    doAssert len(newDna("AAACGGG")) == 7
   len(s.chain)
 
 proc len*(sr: SequenceRecord): int =
@@ -258,7 +259,8 @@ proc guess*(s: string): Sequence =
   ## 'N' and 'X' are not considered for the guess, even if 'N' is a valid
   ## aminoacid.
   ##
-  ## If the class cannot be inferred, a generic Sequence is returned.
+  ## If the class cannot be inferred, a generic Sequence (class
+  ## `scSequence<#SequenceClass>`_) is returned.
   runnableExamples:
     doAssert guess("ATCGGCATCG") ?= newDna("ATCGGCATCG")
     doAssert guess("AUCGGCAUCG") ?= newRna("AUCGGCAUCG")

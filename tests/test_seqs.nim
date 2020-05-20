@@ -1,4 +1,5 @@
 import strformat
+import strtabs
 import strutils
 import unittest
 
@@ -216,6 +217,21 @@ suite "Test sequenceRecord operations":
 
     sr[^1] = 'T'
     doAssert sr.record.chain == "TCTGGTGGT"
+
+suite "Test SequenceRecord Features":
+  setup:
+    var dna = Sequence(chain: "ACGTGGGGT", class: scDna)
+
+  test "Add Features to SequenceRecord":
+    var qualifiers = {"gene": "DNCLI2"}.newStringTable
+    let feature = Feature(key: "CDS", location: "7..1485",
+                          qualifiers: qualifiers)
+    var dnaRec = SequenceRecord(name: "DNA sample",
+                                record: dna,
+                                features: @[feature])
+
+    check dnaRec.features[0].key == "CDS"
+
 
 suite "Sequence Catchable Errors":
   setup:

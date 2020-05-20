@@ -2,14 +2,19 @@
 ## :Version: |libversion|
 import sequtils
 import strformat
+import strtabs
 import strutils
 import unicode
 import tables
 
 import data
 
-
 type
+  Feature* = ref object of RootObj
+    key*: string
+    location*: string
+    qualifiers*: StringTableRef
+
   SequenceClass* = enum
     ## The class of the sequence, being `scSequence` a generic one.
     scSequence = "Sequence",
@@ -28,6 +33,7 @@ type
     ## it.
     name*: string
     record*: Sequence
+    features*: seq[Feature]
 
   SequenceClassError* = object of Exception
 

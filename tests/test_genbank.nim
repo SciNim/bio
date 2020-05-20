@@ -34,6 +34,3 @@ suite "Test SequenceRecord operation":
     check len(gb[0].features[2].qualifiers) == 7
 
     check gb[0].features[2].qualifiers["db_xref"] == "LocusID:1783,GI:5453634"
-
-    echo gb[0].features[2].qualifiers["translation"]
-    check 1 == 0

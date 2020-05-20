@@ -7,6 +7,8 @@ import sequences
 export sequences
 
 
+const FIELD = 12
+
 proc parseFeatures(fileIn: File): seq[Feature] =
   ## Private procedure
   ##
@@ -44,7 +46,6 @@ proc parseFeatures(fileIn: File): seq[Feature] =
 
   # This is the last data that remains hanging in variables
   qualifiers[currentQualifier].add lineData[0].replace("\"", "")
-  #thisFeature.qualifiers = qualifiers
   result.add thisFeature
 
 proc load*(fName: string, kind: string="gb"): seq[SequenceRecord] =
@@ -64,6 +65,7 @@ proc load*(fName: string, kind: string="gb"): seq[SequenceRecord] =
 
   var line, name, sequence: string
   var features: seq[Feature]
+
   while not fileIn.endOfFile:
     line = fileIn.readLine
     if line.startsWith("LOCUS"):
@@ -71,22 +73,18 @@ proc load*(fName: string, kind: string="gb"): seq[SequenceRecord] =
     if line.startsWith("ACCESSION"):
       discard ## TODO Get the accession id
     if line.startsWith("DEFINITION"):
-      name = line[12 .. ^1]
-      while true:
+      name = line[FIELD .. ^1]
+      line = fileIn.readLine
+      while line[0] == ' ':
+        name.add line[FIELD - 1 .. ^1]  # (- 1) borrows a space to join lines
         line = fileIn.readLine
-        if line[0] == ' ':
-          name.add line[11 .. ^1]
-        else:
-          break
     if line.startsWith("FEATURES"):
       features = parseFeatures(fileIn)
     if line.startsWith("ORIGIN"):
-      while true:
+      line = fileIn.readLine
+      while line[0] == ' ':
+        sequence.add line[10 .. ^1].replace(" ", "")
         line = fileIn.readLine
-        if line[0] == ' ':
-          sequence.add line[10 .. ^1].replace(" ", "")
-        else:
-          break
     if line.startsWith("//"):
       result.add SequenceRecord(name: name,
                                 record: guess(sequence.toUpperAscii),

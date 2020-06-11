@@ -113,14 +113,14 @@ An example, searching five sequences in a 500 Mb Fasta file with 5000 sequences:
               print(record.id)
 
 
-========================================   ===========
-  Command                                     Time
-========================================   ===========
-`nim c program.nim`                         20.226 s
-`nim c -d:release program.nim`               2.466 s
-`python program.py`                          1.634 s
-`nim c -d:release -d:danger program.nim`     1.580 s
-========================================   ===========
+================================   ===========
+  Command                             Time
+================================   ===========
+`nim c program.nim`                 20.226 s
+`nim c -d:release program.nim`       2.466 s
+`python program.py`                  1.634 s
+`nim c -d:danger program.nim`        1.580 s
+================================   ===========
 
 If you don't pay attention you might end with a much slower code.
 

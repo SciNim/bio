@@ -23,12 +23,12 @@ iterator sequences*(fName: string, kind: string="fasta"):
 
   var name, sequence: string
   for line in fileIn.lines:
-    if (line[0] == '>' and sequence.len > 0) or fileIn.endOfFile:
+    if (line.startsWith('>') and sequence.len > 0) or fileIn.endOfFile:
       if fileIn.endOfFile:
         sequence.add line
       yield SequenceRecord(name: name, record: guess(sequence.toUpperAscii))
 
-    if line[0] == '>':
+    if line.startsWith('>'):
       sequence = ""
       name = line[1..^1]
     else:

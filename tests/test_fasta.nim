@@ -84,6 +84,13 @@ suite "Test SequenceRecord operation":
 
       check records.len == 1
 
+    test "The lonely sequence but with extra blank line at end":
+      var records: seq[SequenceRecord]
+      for s in sequences(getAppDir() / "test_files/one_sequence_extraline.fas"):
+        records.add s
+
+      check records.len == 1
+
   test "Write a bunch of records as a FASTA through filehandler":
     let multiRecords: seq[SequenceRecord] = @[dnaRecord, dnaRecord]
 

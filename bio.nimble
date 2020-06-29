@@ -18,6 +18,10 @@ task test, "Full test suite":
   #exec "testament html"
   #exec "firefox testresults.html"
 
+proc docSetup =
+  mkdir("htmldocs")
+  cpFile("media/logo.svg", "htmldocs/logo.svg")
+
 proc preDocs =
   exec("rm *idx -f")
   putEnv("author", author)
@@ -37,10 +41,7 @@ proc postDocs() =
   exec("curl -LO -z dochack.js " & "https://nim-lang.github.io/Nim/dochack.js")
 
 task docs, "Deploy doc html + search index to public/ directory":
-  let
-    docHackJsSource = "https://nim-lang.github.io/Nim/dochack.js"
-
-  mkdir("htmldocs")
+  docSetup()
 
   withDir "htmldocs":
     preDocs()
@@ -48,9 +49,10 @@ task docs, "Deploy doc html + search index to public/ directory":
     postDocs()
 
 task repodocs, "Deploy docs, but from repo":
-  mkdir("htmldocs")
+  docSetup()
 
   withDir "htmldocs":
     preDocs()
     buildDocs(rst = "../src/docs", src = "../src/bio")
+    cpFile("../media/logo.svg", "logo.svg")
     postDocs()

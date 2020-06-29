@@ -2,6 +2,7 @@ import os
 import posix_utils
 import strformat
 import strutils
+import tables
 import unittest
 
 import bio/sequences
@@ -103,3 +104,35 @@ suite "Test SequenceRecord operation":
       fastaFile.add line
 
     check fastaFile == @[">Sample", "ACGTGGGGT", ">Sample", "ACGTGGGGT"]
+
+suite "Operations with FASTA files":
+  setup:
+    let fastaF: string = getAppDir() / "test_files/regular.fas"
+
+  test "Index building":
+    let tbl = {"First sequence": 0'i64, "Second sequence": 138'i64}.newTable
+    let index: Index = Index(table: tbl)
+
+    check newIndex(fastaF).table == tbl
+    check newIndex(fastaF).source == fastaF
+
+  test "Built index is pointing correctly":
+    let f: File = open(fastaF)
+    defer: f.close
+
+    let index: Index = newIndex(fastaF)
+
+    setFilePos(f, index.table["Second sequence"])
+    check f.readChar == '>'
+
+  test "Access the Indexes by sequence name":
+    let index: Index = newIndex(fastaF)
+    let expectedSeq = Sequence(
+      chain: "GGGGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCGGG" &
+             "TTTGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCTTT",
+      class: scDna)
+    let expectedRec = SequenceRecord(name: "Second sequence",
+                                     record: expectedSeq)
+
+
+    check index["Second sequence"].record ?= expectedSeq

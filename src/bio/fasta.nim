@@ -1,10 +1,19 @@
 ## :Author: |author|
 ## :Version: |libversion|
 import strutils
+import tables
 
 import sequences
 export sequences
 
+
+type
+ Index* = ref object of RootObj
+    ## The index is a `table` with the name of the sequence as a string, except
+    ## the initial '>', and its position in the file. The filename which the
+    ## Index refers to is stored in `source`.
+    source*: string
+    table*: TableRef[string, int64]
 
 iterator sequences*(fName: string, kind: string="fasta"):
   SequenceRecord {.inline.} =
@@ -30,9 +39,66 @@ iterator sequences*(fName: string, kind: string="fasta"):
 
     if line.startsWith('>'):
       sequence = ""
-      name = line[1..^1]
+      name = line[1 .. ^1]
     else:
       sequence.add line
+
+proc newIndex*(fName: string): Index =
+  ## Build an `Index<#Index>`_ for a given fasta file.
+  ##
+  ## You should build an index if you plan to access a few sequences by name
+  ## randomly and repeatedly. If you'll need all the sequences and specially
+  ## if you only need it once, use `sequences
+  ## iterator<#sequences.i,string,string>`_
+  ##
+  ## This index doesn't attempt to compete with powerful indexing like
+  ## `faidx<https://www.htslib.org/doc/samtools-faidx.html>`_ . E.g. for FASTAs
+  ## like the human genome sequence, with a few huge sequences, it's almost
+  ## useless.
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let index: Index = newIndex("path/to/file.fas")
+
+  var table = newTable[string, int64]()
+
+  let fileIn: File = open(fName)
+  defer: fileIn.close
+
+  const newLine = 1
+
+  for line in fileIn.lines:
+    if line.startsWith('>'):
+      table[line[1 .. ^1]] = fileIn.getFilePos - len(line) - newLine
+
+  Index(source: fName, table: table)
+
+proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
+  ## Returns a `SequenceRecords<sequences.html#SequenceRecord>`_ from an
+  ## `Index<#Index>`_.
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let index: Index = newIndex("path/to/file.fas")
+  ##   echo index["My Record"]
+
+  let fileIn: File = open(index.source)
+  defer: fileIn.close
+
+  fileIn.setFilePos(index.table[name])
+  let name = fileIn.readLine[1 .. ^1]
+  var sequence: string
+  for line in fileIn.lines:
+    if line.startsWith('>') or fileIn.endOfFile:
+      if fileIn.endOfFile:
+        sequence.add line
+      return SequenceRecord(name: name,
+                            record: guess(sequence.toUpperAscii))
+    sequence.add line
 
 proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   ## Load a `seq` of `SequenceRecords<sequences.html#SequenceRecord>`_ from a

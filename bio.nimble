@@ -1,7 +1,7 @@
 import strformat
 # Package
 
-version       = "0.2.1"
+version       = "0.2.2"
 author        = "Xabier Bello"
 description   = "A set of tools to do biological operations."
 license       = "MIT"

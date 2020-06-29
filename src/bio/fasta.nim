@@ -1,5 +1,6 @@
 ## :Author: |author|
 ## :Version: |libversion|
+import strformat
 import strutils
 import tables
 
@@ -99,6 +100,11 @@ proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
       return SequenceRecord(name: name,
                             record: guess(sequence.toUpperAscii))
     sequence.add line
+
+proc `$`*(index: Index): string {.inline.} =
+  ## Returns a brief description of the `Index<#Index>`_.
+
+  &"Index for {index.source}, lenght: {len(index.table)}"
 
 proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   ## Load a `seq` of `SequenceRecords<sequences.html#SequenceRecord>`_ from a

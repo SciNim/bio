@@ -136,3 +136,8 @@ suite "Operations with FASTA files":
 
 
     check index["Second sequence"].record ?= expectedSeq
+
+  test "Give the index an useful string":
+    let index: Index = newIndex(fastaF)
+
+    check $index == &"Index for {fastaF}, lenght: 2"

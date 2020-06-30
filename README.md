@@ -1,9 +1,7 @@
 What am I
 =========
 
-<img src="media/logo.svg"
-     alt="Logo"
-     style="float: left; margin-right: 2em; max-width: 150px;" />
+<img src="media/logo.svg" width="200" />
 [TDB: A brief self description]
 
 How to install

@@ -76,8 +76,8 @@ for your code:
 
 Some modules already offer other modules (via `export`) so you don't need to
 re-import them. E.g. `import bio/fasta` exports `bio/sequences`, so you can
-use `Sequence<#Sequence>`_, `SequenceRecord<#SequenceRecord>`_ and others
-without explicitly importing the module `bio/sequence`.
+use Sequence_, SequenceRecord_ and others without explicitly importing the
+module `bio/sequence`.
 
 Speed considerations
 --------------------
@@ -88,7 +88,7 @@ your code for free, because "Nim is faster than Python". This will **not** be
 the case. Biopython is fast enough, and in fact you have to pay attention to
 your Nim-fu if you don't want to end with slower code.
 
-An example, searching five sequences in a 500 Mb Fasta file with 5000 sequences:
+An example, scanning sequences in a 500 Mb Fasta file with 5000 sequences:
 
 ..example-code::
 
@@ -125,11 +125,14 @@ An example, searching five sequences in a 500 Mb Fasta file with 5000 sequences:
 If you don't pay attention you might end with a much slower code.
 
 Much more powerful reasons to use Nim + bio would be the distribution of
-binaries, the FFI_ or the ease to do multithread_.
+binaries (you should be safe compiling in your computer and then moving the
+program around as a single file), the FFI_ (easy access to libraries like hts_)
+or the ease to do multithread_.
 
 
 .. _FFI: https://nim-lang.org/docs/manual.html#foreign-function-interface
 .. _multithread: https://nim-lang.org/docs/manual.html#threads
+.. _hts: http://www.htslib.org/
 
 
 Tutorial / Recipes
@@ -144,7 +147,7 @@ API docs
 
 The API docs include all the `Objects`, `procs` and companions documented in
 isolation. I tried to include code samples where I could, but I find quite
-difficult to learn something going straigth to the API docs. It should be your
+difficult to learn something going straight to the API docs. It should be your
 main reference once you get a bit familiar with the library through the
 `Tutorial <tutorial.html>`_.
 
@@ -157,3 +160,6 @@ Operations with files
 ---------------------
 
 * `fasta <fasta.html>`_ is a set of utilities to work with Fasta files.
+
+.. _Sequence: sequences.html#Sequence
+.. _SequenceRecord: sequences.html#SequenceRecord

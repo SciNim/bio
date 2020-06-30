@@ -29,7 +29,8 @@ proc preDocs =
   putEnv("libversion", version)
 
 proc buildDocs(rst, src: string) =
-  for rst_src in ["index.rst", "tutorial.rst"]:
+  for rst_src in ["index.rst", "tutorial.rst", "recipes.rst"]:
+    # TODO: Add a "if newer" here.
     selfExec(&"rst2html {rst}/{rst_src}")
 
   for nim_src in ["sequences.nim", "fasta.nim"]:

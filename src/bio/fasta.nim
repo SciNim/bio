@@ -41,34 +41,6 @@ type
 ##  Iterate through all sequences             2.45 s    ~4200 kbytes
 ##  ====================================   ===========  ============
 ##
-## Another option is to store the `Index` to a file, using the `streams` and
-## `marshal` modules::
-##
-## **Store**. For the above file this costs ~2.0 s and 3.5 Mb of file space.
-##
-## .. code-block::
-##
-##   import marshal, streams
-##   import bio/fasta
-##
-##   let idx: Index = newIndex("YourFasta.fst")
-##   let idxFile = newFileStream("YourFastaIndex.idx", fmWrite)
-##
-##   idxFile.store(idx)
-##   idxFile.close
-##
-## **Load**. For the above index, this is almost free (0.05 s), with the
-## the little advantage that the `Index` *remembers* the source file.
-##
-## .. code-block::
-##
-##   import marshal, streams
-##   import bio/fasta
-##
-##   let idxFile = newFileStream("YourFastaIndex.idx", fmWrite)
-##   let idx = to[Index](idxFile.readAll)
-##   idxFile.close
-##
 
 iterator sequences*(fName: string, kind: FileType=ftFasta):
   SequenceRecord {.inline.} =

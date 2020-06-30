@@ -20,7 +20,7 @@ suite "Test SequenceRecord operation":
     removeFile(tmpOutput[0])
 
   test "Write records as a FASTA through filename":
-    dnaRecord.dumpTo(tmpOutput[0], "fasta")
+    dnaRecord.dumpTo(tmpOutput[0], ftFasta)
 
     check existsFile(tmpOutput[0])
 
@@ -29,7 +29,7 @@ suite "Test SequenceRecord operation":
     check fastaFile == @[">Sample", "ACGTGGGGT"]
 
   test "Write records as a FASTA through handler":
-    dnaRecord.dumpTo(tmpOutput[1], "fasta")
+    dnaRecord.dumpTo(tmpOutput[1], ftFasta)
 
     let fastaFile = tmpOutput[0].readLines(2)
 
@@ -37,7 +37,7 @@ suite "Test SequenceRecord operation":
 
   test "Automatically wrap the long lines to 60 chars":
     dna.chain = repeat(dna.chain, 8)
-    dnaRecord.dumpTo(tmpOutput[1], "fasta")
+    dnaRecord.dumpTo(tmpOutput[1], ftFasta)
 
     let fastaFile = tmpOutput[0].readLines(3)
 
@@ -95,7 +95,7 @@ suite "Test SequenceRecord operation":
   test "Write a bunch of records as a FASTA through filehandler":
     let multiRecords: seq[SequenceRecord] = @[dnaRecord, dnaRecord]
 
-    multiRecords.dumpTo(tmpOutput[1], "fasta")
+    multiRecords.dumpTo(tmpOutput[1], ftFasta)
 
     check existsFile(tmpOutput[0])
 
@@ -136,11 +136,6 @@ suite "Operations with FASTA files":
 
     check index["Second sequence"].record ?= expectedSeq
 
-  test "Give the index an useful string":
-    let index: Index = newIndex(fastaF)
-
-    check $index == &"Index for {fastaF}, lenght: 2"
-
   test "Use the index with a file handler":
     let index: Index = newIndex(fastaF)
     let expectedSeq = Sequence(
@@ -153,3 +148,18 @@ suite "Operations with FASTA files":
     defer: fastaHandler.close
 
     check index[fastaHandler, "Second sequence"].record ?= expectedSeq
+
+  test "Convenience 'items' procedure to deal with the Index.table":
+    let index: Index = newIndex(fastaF)
+
+    var seqNames: seq[string]
+
+    for s in index:
+      seqNames.add s
+
+    check seqNames == @["First sequence", "Second sequence"]
+
+  test "Give the index an useful string":
+    let index: Index = newIndex(fastaF)
+
+    check $index == &"Index for {fastaF}, length: 2"

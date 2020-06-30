@@ -9,17 +9,21 @@ export sequences
 
 
 type
- Index* = ref object of RootObj
+  FileType* = enum
+    ## The filetype, to allow potential future filetypes handling.
+    ftFasta = "fasta"
+
+  Index* = ref object of RootObj
     ## The index is a `table` with the name of the sequence as a string, except
     ## the initial '>', and its position in the file. The filename which the
     ## Index refers to is stored in `source`.
     source*: string
     table*: TableRef[string, int64]
 
-iterator sequences*(fName: string, kind: string="fasta"):
+iterator sequences*(fName: string, kind: FileType=ftFasta):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
-  ## filename, yielding `SequenceRecords`.
+  ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
   ## .. code-block::
   ##
@@ -81,7 +85,8 @@ proc `[]`*(index: Index, fileIn: File, name: string): SequenceRecord {.inline.} 
   ## `Index<#Index>`_ using an already opened file handler.
   ##
   ## Ignores the file path provided with `Index.source` field, and doesn't
-  ## check the validity of `fileIn` handler (e.g. if it's in `fmRead` mode).
+  ## check the validity of `fileIn` handler (e.g. if it's in
+  ## `fmRead<https://nim-lang.org/docs/io.html#FileMode>`_ mode).
   ##
   ## .. code-block::
   ##
@@ -94,6 +99,7 @@ proc `[]`*(index: Index, fileIn: File, name: string): SequenceRecord {.inline.} 
   ##     defer: fastaFile.close
   ##     echo index[fastaFile, "My Record"]
   ##     echo index[fastaFile, "Other Record"]
+
   fileIn.setFilePos(index.table[name])
   let name = fileIn.readLine[1 .. ^1]
   var sequence: string
@@ -104,7 +110,6 @@ proc `[]`*(index: Index, fileIn: File, name: string): SequenceRecord {.inline.} 
       return SequenceRecord(name: name,
                             record: guess(sequence.toUpperAscii))
     sequence.add line
-
 
 proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
   ## Returns a `SequenceRecords<sequences.html#SequenceRecord>`_ from an
@@ -122,14 +127,47 @@ proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
   let fileIn: File = open(index.source)
   defer: fileIn.close
 
-  return index[fileIn, name]
+  index[fileIn, name]
 
 proc `$`*(index: Index): string {.inline.} =
   ## Returns a brief description of the `Index<#Index>`_.
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let index: Index = newIndex("path/to/file.fas")
+  ##   echo index
+  ##
+  ## .. code-block::
+  ##
+  ##   > Index for path/to/file.fas, length: 232
 
-  &"Index for {index.source}, lenght: {len(index.table)}"
+  &"Index for {index.source}, length: {len(index.table)}"
 
-proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
+iterator `items`*(index: Index): string =
+  ## Iterate through all the `Index<#Index>`_ items, yielding the names of
+  ## the sequences in the index.
+  ##
+  ## If you need the actual `SequenceRecords<sequences.html#SequenceRecord>`_,
+  ## use the `[]` getters.
+  ## If you need the positions of each SequenceRecord in file, access the
+  ## underlying `Table` directly (you have to `import tables` to do it).
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let index: Index = newIndex("path/to/file.fas")
+  ##
+  ##   for sequenceName in index:
+  ##     echo sequenceName
+  ##     echo index[sequenceName]
+
+  for k in index.table.keys:
+    yield k
+
+proc load*(fName: string, kind: FileType=ftFasta): seq[SequenceRecord] =
   ## Load a `seq` of `SequenceRecords<sequences.html#SequenceRecord>`_ from a
   ## filename.
   ##
@@ -145,7 +183,7 @@ proc load*(fName: string, kind: string="fasta"): seq[SequenceRecord] =
   for sequence in sequences(fName):
     result.add sequence
 
-proc dumpTo*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
+proc dumpTo*(record: SequenceRecord, fHandler: File, kind: FileType=ftFasta) =
   ## Write a `SequenceRecords<sequences.html#SequenceRecord>`_ to `fHandler`,
   ## wrapping the sequence by 60 positions.
   ## The name of the SequenceRecord remains untouched.
@@ -176,7 +214,7 @@ proc dumpTo*(record: SequenceRecord, fHandler: File, kind: string="fasta") =
   fHandler.write('\n')
   fHandler.flushFile
 
-proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: string="fasta") =
+proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: FileType=ftFasta) =
   ## A shortcut to avoid the explicit cycle to write a `seq` of
   ## `SequenceRecords<sequences.html#SequenceRecord>`_
   ##
@@ -196,7 +234,7 @@ proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: string="fasta")
   for sr in records:
     sr.dumpTo(fHandler, kind)
 
-proc dumpTo*(record: SequenceRecord, fName: string, kind: string="fasta") =
+proc dumpTo*(record: SequenceRecord, fName: string, kind: FileType=ftFasta) =
   ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,File,string>`_
   ## but you only need to point out the name of the file.
   ##
@@ -215,7 +253,7 @@ proc dumpTo*(record: SequenceRecord, fName: string, kind: string="fasta") =
 
   record.dumpTo(fHandler, kind)
 
-proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: string="fasta") =
+proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: FileType=ftFasta) =
   ## Same as `write-through-handler proc<#dumpTo,seq[SequenceRecord],File,string>`_
   ## but you only need to point out the name of the file.
   ##

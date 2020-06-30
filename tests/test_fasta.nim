@@ -134,10 +134,22 @@ suite "Operations with FASTA files":
     let expectedRec = SequenceRecord(name: "Second sequence",
                                      record: expectedSeq)
 
-
     check index["Second sequence"].record ?= expectedSeq
 
   test "Give the index an useful string":
     let index: Index = newIndex(fastaF)
 
     check $index == &"Index for {fastaF}, lenght: 2"
+
+  test "Use the index with a file handler":
+    let index: Index = newIndex(fastaF)
+    let expectedSeq = Sequence(
+      chain: "GGGGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCGGG" &
+             "TTTGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCTTT",
+      class: scDna)
+    let expectedRec = SequenceRecord(name: "Second sequence",
+                                     record: expectedSeq)
+    let fastaHandler = open(fastaF)
+    defer: fastaHandler.close
+
+    check index[fastaHandler, "Second sequence"].record ?= expectedSeq

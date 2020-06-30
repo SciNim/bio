@@ -76,9 +76,41 @@ proc newIndex*(fName: string): Index =
 
   Index(source: fName, table: table)
 
+proc `[]`*(index: Index, fileIn: File, name: string): SequenceRecord {.inline.} =
+  ## Returns a `SequenceRecords<sequences.html#SequenceRecord>`_ from an
+  ## `Index<#Index>`_ using an already opened file handler.
+  ##
+  ## Ignores the file path provided with `Index.source` field, and doesn't
+  ## check the validity of `fileIn` handler (e.g. if it's in `fmRead` mode).
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio/fasta
+  ##
+  ##   let index: Index = newIndex("path/to/file.fas")
+  ##
+  ##   block:
+  ##     let fastaFile = open("path/to/file.fas")
+  ##     defer: fastaFile.close
+  ##     echo index[fastaFile, "My Record"]
+  ##     echo index[fastaFile, "Other Record"]
+  fileIn.setFilePos(index.table[name])
+  let name = fileIn.readLine[1 .. ^1]
+  var sequence: string
+  for line in fileIn.lines:
+    if line.startsWith('>') or fileIn.endOfFile:
+      if fileIn.endOfFile:
+        sequence.add line
+      return SequenceRecord(name: name,
+                            record: guess(sequence.toUpperAscii))
+    sequence.add line
+
+
 proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
   ## Returns a `SequenceRecords<sequences.html#SequenceRecord>`_ from an
   ## `Index<#Index>`_.
+  ##
+  ## Doesn't check if the file provided at `Index.source` exists.
   ##
   ## .. code-block::
   ##
@@ -90,16 +122,7 @@ proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
   let fileIn: File = open(index.source)
   defer: fileIn.close
 
-  fileIn.setFilePos(index.table[name])
-  let name = fileIn.readLine[1 .. ^1]
-  var sequence: string
-  for line in fileIn.lines:
-    if line.startsWith('>') or fileIn.endOfFile:
-      if fileIn.endOfFile:
-        sequence.add line
-      return SequenceRecord(name: name,
-                            record: guess(sequence.toUpperAscii))
-    sequence.add line
+  return index[fileIn, name]
 
 proc `$`*(index: Index): string {.inline.} =
   ## Returns a brief description of the `Index<#Index>`_.

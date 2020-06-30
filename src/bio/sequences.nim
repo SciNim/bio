@@ -35,7 +35,7 @@ type
     record*: Sequence
     features*: seq[Feature]
 
-  SequenceClassError* = object of Exception
+  SequenceClassError* = object of ValueError
 
 proc newDna*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class

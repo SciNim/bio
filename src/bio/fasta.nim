@@ -20,6 +20,56 @@ type
     source*: string
     table*: TableRef[string, int64]
 
+## Indexing vs iterating
+## =====================
+##
+## Given a Fasta file, 1.3 Gb in size, with ~40000 sequences and 30 kb per
+## sequence, do the following operations compiled with `-d danger` and timing
+## with `/usr/bin/time -v`:
+##
+## ====================================   =========== ==============
+##  Operation                                 Time        Memory
+## ====================================   =========== ==============
+##  newIndex("yourFasta.fas")                 1.90 s    ~6000 kbytes
+##  Index + search 1 known sequences...
+##  ... at beginning of the file              2.04 s    ~6000 kbytes
+##  ... at the middle                         2.10 s       "
+##  ... at the end                            2.07 s       "
+##  Index + search 100 random sequences       2.08 s    ~6500 kbytes
+##  Index + search all sequences              4.80 s    ~6500 kbytes
+##
+##  Iterate through all sequences             2.45 s    ~4200 kbytes
+##  ====================================   ===========  ============
+##
+## Another option is to store the `Index` to a file, using the `streams` and
+## `marshal` modules::
+##
+## **Store**. For the above file this costs ~2.0 s and 3.5 Mb of file space.
+##
+## .. code-block::
+##
+##   import marshal, streams
+##   import bio/fasta
+##
+##   let idx: Index = newIndex("YourFasta.fst")
+##   let idxFile = newFileStream("YourFastaIndex.idx", fmWrite)
+##
+##   idxFile.store(idx)
+##   idxFile.close
+##
+## **Load**. For the above index, this is almost free (0.05 s), with the
+## the little advantage that the `Index` *remembers* the source file.
+##
+## .. code-block::
+##
+##   import marshal, streams
+##   import bio/fasta
+##
+##   let idxFile = newFileStream("YourFastaIndex.idx", fmWrite)
+##   let idx = to[Index](idxFile.readAll)
+##   idxFile.close
+##
+
 iterator sequences*(fName: string, kind: FileType=ftFasta):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given

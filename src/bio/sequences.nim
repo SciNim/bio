@@ -113,6 +113,14 @@ proc `[]`*(s: Sequence, i: int|BackwardsIndex): char =
     doAssert rna[^1] == 'U'
   s.chain[i]
 
+proc `[]`*(s: Sequence, hs: HSlice): Sequence =
+  ## Gets a Slice position of a `Sequence<#Sequence>`_
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+
+    doAssert rna[1 .. 4] == newRna("CGU", scRna)
+  Sequence(chain: s.chain[hs], class: s.class)
+
 proc `[]`*(sr: SequenceRecord, i: int|BackwardsIndex): char =
   ## Gets a position of a `SequenceRecord<#SequenceRecord>`_ as if it was a
   ## string.
@@ -171,6 +179,19 @@ proc `[]=`*[T, U](s: Sequence, x: HSlice[T, U], b: string) =
     rna[^2 .. ^1] = "TT"
     doAssert rna.chain == "AATGGGTT"
   s.chain[x] = b
+
+proc `[]=`*[T, U](s: SequenceRecord, x: HSlice[T, U], b: string) =
+  ## Replaces a stretch in the chain of a `Sequence<#Sequence>`_.
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
+
+    sequenceRecord[1 .. 3] = "AT"
+    doAssert rna.chain == "AATGGGGU"
+
+    rna[^2 .. ^1] = "TT"
+    doAssert rna.chain == "AATGGGTT"
+  s.record.chain[x] = b
 
 iterator items*(s: Sequence): char =
   ## Iterates a `Sequence<#Sequence>`_ yielding `chars` from the chain.

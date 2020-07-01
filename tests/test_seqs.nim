@@ -87,7 +87,6 @@ suite "Test Sequence operation":
     check guess("NNNNNNNNNNNNNNNNNNNNNNNNNNNNACTGGTGG").class == scDna
     check guess("XXXXXXXXXXXXXXXXXXXXXXXXXXFSYWLSCPIK").class == scProtein
 
-
   test "Operations over sequences guessed as DNA":
     let myDna = guess("ACGTGGGGT")
 
@@ -108,6 +107,9 @@ suite "Test Sequence operation":
   test "Sequence point getting":
     check dna[2] == 'G'
     check dna[^1] == 'T'
+
+  test "Sequence slice getting":
+    check dna[1 .. 4].chain == "CGTG"
 
   test "Sequence nucleotide iteration":
     var newChain: string
@@ -218,6 +220,10 @@ suite "Test sequenceRecord operations":
     sr[^1] = 'T'
     doAssert sr.record.chain == "TCTGGTGGT"
 
+  test "SequenceRecord slice assignment":
+    sr[0 .. 4] = "AAAA"
+    doAssert sr.record.chain == "AAAATGGA"
+
 suite "Test SequenceRecord Features":
   setup:
     var dna = Sequence(chain: "ACGTGGGGT", class: scDna)
@@ -231,7 +237,6 @@ suite "Test SequenceRecord Features":
                                 features: @[feature])
 
     check dnaRec.features[0].key == "CDS"
-
 
 suite "Sequence Catchable Errors":
   setup:

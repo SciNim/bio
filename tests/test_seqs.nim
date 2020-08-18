@@ -25,6 +25,13 @@ suite "Test Sequence operation":
     let s: Sequence = Sequence(chain: 'A'.repeat(200))
     check $s == &"Sequence: {'A'.repeat(60)}…"
 
+  test "Remove any non printable character from the sequence":
+    ## When you load a DNA string from a file with newlines, they shouldn't be
+    ## carried to the final sequence.
+    let dnaString: string = "ACTGCG\nGCAT"
+
+    check newDna(dnaString).chain == "ACTGCGGCAT"
+
   test "DNA objects construction":
     check dnaT of Sequence
     check dnaT.class == scDna
@@ -223,6 +230,19 @@ suite "Test sequenceRecord operations":
   test "SequenceRecord slice assignment":
     sr[0 .. 4] = "AAAA"
     doAssert sr.record.chain == "AAAATGGA"
+
+  test "SequenceRecord getting a codon":
+    # From plain sequences (no gaps)
+    let expectedA: Sequence = newDna("ACT")
+    let expectedB: Sequence = newDna("GGA")
+    check sequence.codon(0) ?= expectedA
+    check sequence.codon(1) ?= expectedA
+    check sequence.codon(2) ?= expectedA
+    check sequence.codon(6) ?= expectedB
+
+    let gapped: Sequence = newDna("A-CTGGTG-GA")
+    check gapped.codon(2) ?= expectedA
+    check gapped.codon(6) ?= expectedB
 
 suite "Test SequenceRecord Features":
   setup:

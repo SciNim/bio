@@ -42,6 +42,37 @@ type
 ##  ====================================   ===========  ============
 ##
 
+iterator sequences*(data: seq[string], kind: FileType=ftFasta):
+  SequenceRecord {.inline.} =
+  ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
+  ## sequence of strings, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
+  ##
+  ## I found this useful only to embed a sequence in a program.
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio/fasta
+  ##
+  ##   const data = slurp("path/to/file.fas").splitLines
+  ##
+  ##   for sequence in sequences(data):
+  ##     doAssert(sequence of SequenceRecord)
+  # XXX This can be probably done unified with the other sequences(file)
+  #     through Streams
+  let last: int = data.len - 1
+  var name, sequence: string
+  for i, line in data.pairs:
+    if (line.startsWith('>') and sequence.len > 0) or i == last:
+      if i == last:
+        sequence.add line
+      yield SequenceRecord(name: name, record: guess(sequence.toUpperAscii))
+
+    if line.startsWith('>'):
+      sequence = ""
+      name = line[1 .. ^1]
+    else:
+      sequence.add line
+
 iterator sequences*(fName: string, kind: FileType=ftFasta):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given

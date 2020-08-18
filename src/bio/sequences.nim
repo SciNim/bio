@@ -37,13 +37,19 @@ type
 
   SequenceClassError* = object of ValueError
 
+proc stripSeq(s: string): string =
+  ## Remove strutils.Whitespace from string (targeting newlines and the like).
+  for c in s:
+    if likely(c notin Whitespace):
+      result.add c
+
 proc newDna*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class
   ## "DNA".
   runnableExamples:
     let dna: Sequence = newDna("TGCACCCCA")
     doAssert dna.class == scDna
-  Sequence(chain: chain, class: scDna)
+  Sequence(chain: stripSeq(chain), class: scDna)
 
 proc newRna*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class
@@ -51,7 +57,7 @@ proc newRna*(chain: string): Sequence =
   runnableExamples:
     let rna: Sequence = newRna("ACGUGGGGU")
     doAssert rna.class == scRna
-  Sequence(chain: chain, class: scRna)
+  Sequence(chain: stripSeq(chain), class: scRna)
 
 proc newProtein*(chain: string): Sequence =
   ## Initializes a new `Sequence<#Sequence>`_ object, autoadding the class
@@ -59,7 +65,7 @@ proc newProtein*(chain: string): Sequence =
   runnableExamples:
     let protein: Sequence = newProtein("TWG")
     doAssert protein.class == scProtein
-  Sequence(chain: chain, class: scProtein)
+  Sequence(chain: stripSeq(chain), class: scProtein)
 
 proc `$`*(s: Sequence): string =
   ## `Sequence<#Sequence>`_ representation is limited to "`Class` + 60 chars"
@@ -118,7 +124,7 @@ proc `[]`*(s: Sequence, hs: HSlice): Sequence =
   runnableExamples:
     let rna: Sequence = newRna("ACGUGGGGU")
 
-    doAssert rna[1 .. 4] == newRna("CGU", scRna)
+    doAssert rna[1 .. 3] ?= newRna("CGU")
   Sequence(chain: s.chain[hs], class: s.class)
 
 proc `[]`*(sr: SequenceRecord, i: int|BackwardsIndex): char =
@@ -408,6 +414,46 @@ proc translate*(s: Sequence): Sequence =
       result.chain.add 'X'
   of scRna:
     result = translate(s.backTranscript)
+  else:
+    raise newException(SequenceClassError,
+                       &"Operation available only for {scDna} or {scRna}.")
+
+proc codon*(s: Sequence, position: int): Sequence =
+  ## Return a new `Sequence<#Sequence>`_ which is a triplete that includes
+  ## the position.
+  ##
+  ## `position` parameter doesn't account for gaps, meaning that the `A` in the
+  ## sequence `---------A---T` is in position 0, and the `T` is in 1.
+  ##
+  ## All the operations are zero-indexed: if you target the last base of the
+  ## first codon, the position is **2**.
+  runnableExamples:
+    doAssert newDna("ACGTGGGGT").codon(6).chain == "GGT"
+
+    doAssert newRna("A--CGUGGGGU").codon(1).chain == "ACG"
+
+  runnableExamples:
+    doAssert newDna("ACGTGGGGT").codon(0).chain == "ACG"
+    doAssert newDna("ACGTGGGGT").codon(1).chain == "ACG"
+    doAssert newDna("ACGTGGGGT").codon(2).chain == "ACG"
+
+  result = Sequence()
+
+  case s.class
+  of scDna, scRna:
+    result.class = s.class
+    let window: int = position - (position mod 3)
+    var idx: int
+    var codon: seq[char]
+    for base in s:
+      if base in Letters:
+        codon.add base
+        inc idx
+      if idx > position and codon.len == 3:
+        result.chain = join(codon)
+        break
+      if codon.len == 3:
+        codon = @[]
   else:
     raise newException(SequenceClassError,
                        &"Operation available only for {scDna} or {scRna}.")

@@ -92,6 +92,24 @@ suite "Test SequenceRecord operation":
 
       check records.len == 1
 
+  test "Load record slurping from a file":
+    # File opening is not available when compiling, but you can slurp the file
+    # into a seq[string] and then load that into a seq[SequenceRecords]
+    const seqLines = slurp(currentSourcePath().parentDir / "test_files" /
+                           "regular.fas")
+
+    var records: seq[SequenceRecord]
+
+    for r in sequences(seqLines.splitLines):
+      records.add r
+
+    check records.len == 2
+    check records[0].name == "First sequence"
+    check records[1].name == "Second sequence"
+    check records[0].record.chain.len == 120
+    check records[1].record.chain.len == 120
+    check records[0].record.class == scDna
+
   test "Write a bunch of records as a FASTA through filehandler":
     let multiRecords: seq[SequenceRecord] = @[dnaRecord, dnaRecord]
 

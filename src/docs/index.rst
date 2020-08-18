@@ -96,7 +96,7 @@ An example, scanning sequences in a 500 Mb Fasta file with 5000 sequences:
 
       # Nim code
 
-      seqs = @["A", "B", "C", "D", "E"]
+      let seqs = @["A", "B", "C", "D", "E"]
 
       for sequence in sequences("500Mb_Database.fasta"):
         if sequence.name in seqs:
@@ -123,7 +123,8 @@ An example, scanning sequences in a 500 Mb Fasta file with 5000 sequences:
 `nim c -d:danger --passC:-flto program.nim`        1.074 s
 ============================================   ===========
 
-If you don't pay attention you might end with a much slower code.
+The same simple code could give you a 10x slower or a 50% faster program than
+Python, just by changing the compilation options.
 
 Much more powerful reasons to use Nim + bio would be the distribution of
 binaries (you should be safe compiling in your computer and then moving the

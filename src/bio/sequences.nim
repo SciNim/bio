@@ -444,7 +444,7 @@ proc codon*(s: Sequence, position: int): Sequence =
     result.class = s.class
     let window: int = position - (position mod 3)
     var idx: int
-    var codon: seq[char]
+    var codon = newSeqOfCap[char](3)
     for base in s:
       if base in Letters:
         codon.add base
@@ -453,7 +453,7 @@ proc codon*(s: Sequence, position: int): Sequence =
         result.chain = join(codon)
         break
       if codon.len == 3:
-        codon = @[]
+        codon.delete(0, 2)
   else:
     raise newException(SequenceClassError,
                        &"Operation available only for {scDna} or {scRna}.")

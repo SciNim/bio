@@ -442,7 +442,6 @@ proc codon*(s: Sequence, position: int): Sequence =
   case s.class
   of scDna, scRna:
     result.class = s.class
-    let window: int = position - (position mod 3)
     var idx: int
     var codon = newSeqOfCap[char](3)
     for base in s:

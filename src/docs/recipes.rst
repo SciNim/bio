@@ -21,24 +21,25 @@ To create and **Store** an Index:
 
 .. code-block::
 
-  import marshal, streams
+  import json, tables, streams
   import bio/fasta
 
   let idx: Index = newIndex("YourFasta.fst")
   let idxFile = newFileStream("YourFastaIndex.idx", fmWrite)
 
-  idxFile.store(idx)
+  idxFile.writeLine(%*idx)
   idxFile.close
 
 To **Load** the index. The loading of an index is quite fast. The Index include
 the name of the source file, so if the file changes between loads it becomes
-obsolete.
+obsolete (that includes path changes). You can overcome this by changing
+`Filter.source` field after loading the index to point to the correct file.
 
 .. code-block::
 
-  import marshal, streams
+  import json, streams
   import bio/fasta
 
-  let idxFile = newFileStream("YourFastaIndex.idx", fmWrite)
-  let idx = to[Index](idxFile.readAll)
+  let idxFile = newFileStream("YourFastaIndex.idx", fmRead)
+  let idx = parseJson(idxFile.readAll()).to(Index)
   idxFile.close

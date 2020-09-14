@@ -119,7 +119,10 @@ proc newIndex*(fName: string): Index =
   ##   import bio/fasta
   ##
   ##   let index: Index = newIndex("path/to/file.fas")
-
+  ##
+  ## Once created, saving and loading of Indexes is covered in a
+  ## `recipe<recipes.html#building-storing-and-retrieving-an-index>`_.
+  ##
   var table = newTable[string, int64]()
 
   let fileIn: File = open(fName)

@@ -163,5 +163,10 @@ Operations with files
 
 * `fasta <fasta.html>`_ is a set of utilities to work with Fasta files.
 
+NCBI Entrez
+-----------
+
+* `entrez <entrez.html>`_ allows to interact with the Entrez tools.
+
 .. _Sequence: sequences.html#Sequence
 .. _SequenceRecord: sequences.html#SequenceRecord

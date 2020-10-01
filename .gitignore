@@ -2,9 +2,3 @@ biopython-1.76/
 htmldocs/
 nimcache/
 testresults*
-
-src/bio/sequences
-
-tests/test_fasta
-tests/test_genbank
-tests/test_seqs

@@ -1,7 +1,7 @@
 import strformat
 # Package
 
-version       = "0.2.5"
+version       = "0.2.6"
 author        = "Xabier Bello"
 description   = "A set of tools to do biological operations."
 license       = "MIT"
@@ -33,8 +33,8 @@ proc buildDocs(rst, src: string) =
     # TODO: Add a "if newer" here.
     selfExec(&"rst2html {rst}/{rst_src}")
 
-  for nim_src in ["sequences.nim", "fasta.nim"]:
-    selfExec(&"doc --project --index:on {src}/{nim_src}")
+  for nim_src in ["sequences", "fasta", "entrez"]:
+    selfExec(&"doc --project --index:on {src}/{nim_src}.nim")
 
 proc postDocs() =
   selfExec("buildIndex -o:theindex.html .")

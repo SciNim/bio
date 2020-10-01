@@ -27,21 +27,51 @@ type
 ## sequence, do the following operations compiled with `-d danger` and timing
 ## with `/usr/bin/time -v`:
 ##
-## ====================================   =========== ==============
+## ====================================   =========== ===============
 ##  Operation                                 Time        Memory
-## ====================================   =========== ==============
-##  newIndex("yourFasta.fas")                 1.90 s    ~6000 kbytes
+## ====================================   =========== ===============
+##  newIndex("yourFasta.fas")                 1.90 s     ~6000 kbytes
 ##  Index + search 1 known sequences...
-##  ... at beginning of the file              2.04 s    ~6000 kbytes
-##  ... at the middle                         2.10 s       "
-##  ... at the end                            2.07 s       "
-##  Index + search 100 random sequences       2.08 s    ~6500 kbytes
-##  Index + search all sequences              4.80 s    ~6500 kbytes
+##  ... at beginning of the file              2.04 s     ~6000 kbytes
+##  ... at the middle                         2.10 s        "
+##  ... at the end                            2.07 s        "
+##  Index + search 100 random sequences       2.08 s     ~6500 kbytes
+##  Index + search all sequences              4.80 s     ~6500 kbytes
 ##
-##  Iterate through all sequences             2.45 s    ~4200 kbytes
-##  ====================================   ===========  ============
+##  Load pre-saved Index...
+##  ... and search 1 known sequence           0.02 s    ~15000 kbytes
+##  ... and search 100 random sequences       0.03 s        "
 ##
-
+##  Iterate through all sequences             2.45 s     ~4200 kbytes
+##  ====================================   ===========  =============
+##
+##
+## Random sequence extraction
+## ==========================
+##
+## You can get partial sequences using the `[]` procedures in this module. But
+## if you plan to use a lot of querying on huge chromosomes, maybe you should
+## try `hts-nim<https://github.com/brentp/hts-nim>`_. The feature is a bit
+## hidden but here you have a sample (needs an `index of the fasta
+## <https://www.htslib.org/doc/samtools-faidx.html>`_ file):
+##
+##
+## .. code-block::
+##
+##   import hts
+##
+##   var faidx: Fai
+##
+##   doAssert f.open("UCSC.hg19.fasta")
+##   echo f.get("chr1:100000-100100")
+##
+##   # Or
+##
+##   echo f.get("chr1", 100000, 100100)
+##
+## That is about 100x faster and uses 100x less memory than the equivalent
+## `bio` code.
+##
 iterator sequences*(data: seq[string], kind: FileType=ftFasta):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
@@ -109,11 +139,6 @@ proc newIndex*(fName: string): Index =
   ## if you only need it once, use `sequences
   ## iterator<#sequences.i,string,string>`_
   ##
-  ## This index doesn't attempt to compete with powerful indexing like
-  ## `faidx<https://www.htslib.org/doc/samtools-faidx.html>`_ . E.g. for FASTAs
-  ## like the human genome sequence, with a few huge sequences, it's almost
-  ## useless.
-  ##
   ## .. code-block::
   ##
   ##   import bio/fasta
@@ -137,7 +162,7 @@ proc newIndex*(fName: string): Index =
   Index(source: fName, table: table)
 
 proc `[]`*(index: Index, fileIn: File, name: string): SequenceRecord {.inline.} =
-  ## Returns a `SequenceRecords<sequences.html#SequenceRecord>`_ from an
+  ## Returns a `SequenceRecord<sequences.html#SequenceRecord>`_ from an
   ## `Index<#Index>`_ using an already opened file handler.
   ##
   ## Ignores the file path provided with `Index.source` field, and doesn't
@@ -171,7 +196,8 @@ proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
   ## Returns a `SequenceRecords<sequences.html#SequenceRecord>`_ from an
   ## `Index<#Index>`_.
   ##
-  ## Doesn't check if the file provided at `Index.source` exists.
+  ## Doesn't check if the file provided at `Index.source` exists, and
+  ## open/closes it on each access.
   ##
   ## .. code-block::
   ##

@@ -37,6 +37,11 @@ Just add a new requirement or expand the existing one:
 
 .. code-block:: nim
 
+    requires "nim >= 1.2.0"
+    requires "https://gitlab.com/xbello/bio 0.2.0"
+
+.. code-block:: nim
+
     requires "nim >= 1.2.0, bio 0.2.0"
 
 ..

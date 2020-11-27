@@ -1,3 +1,4 @@
+import os
 import strformat
 # Package
 
@@ -35,6 +36,10 @@ proc buildDocs(rst, src: string) =
 
   for nim_src in ["sequences", "fasta", "entrez"]:
     selfExec(&"doc --project --index:on {src}/{nim_src}.nim")
+
+  for outputFile in listFiles(rst & "/htmldocs"):
+    mvfile(outputFile, &"{splitPath(outputFile)[1]}")
+  rmDir(&"{rst}/htmldocs")
 
 proc postDocs() =
   selfExec("buildIndex -o:theindex.html .")

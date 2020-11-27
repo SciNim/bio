@@ -11,6 +11,10 @@ In you have Nim and Nimble installed, type:
 
     $ nimble install bio
 
+Or
+
+    $ nimble install https://gitlab.com/xbello/bio
+
 How to get/read the docs
 ========================
 

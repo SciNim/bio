@@ -104,40 +104,40 @@ naive method to find the longest ORFs of each sequence:
 
 .. code-block::
 
-  import strutils
-  import bio/fasta
+  1   import strutils
+  2   import bio/fasta
 
-  let srs: seq[SequenceRecord] = load("sample.fasta")
+  3   let srs: seq[SequenceRecord] = load("sample.fasta")
 
-  var currentTrans, bestTrans: Sequence
-  var stops, currentStops: int
+  4   var currentTrans, bestTrans: Sequence
+  5   var stops, currentStops: int
 
-  for sr in srs:
-    stops = sequenceRecord.len
-    for shift in 0 .. 2:
-      currentTrans = sr[shift .. ^(shift + 1)].record.translate
-      currentStops = currentTrans.chain.count('*')
-      if currentStops < stops:
-        stops = currentStops
-        bestTrans = currentTrans
-    echo bestTrans, " STOPS: ", stops
+  6   for sr in srs:
+  7     stops = sequenceRecord.len
+  8     for shift in 0 .. 2:
+  9       currentTrans = sr[shift .. ^(shift + 1)].record.translate
+  10      currentStops = currentTrans.chain.count('*')
+  11      if currentStops < stops:
+  12        stops = currentStops
+  13        bestTrans = currentTrans
+  14    echo bestTrans, " STOPS: ", stops
 
 In this code we create some variables (we will mutate it multiple times) in
-lines 6 and 7. In line 9 we cycle every `SequenceRecord` loaded before, givin
+lines 4 and 5. In line 6 we cycle every `SequenceRecord` loaded before, giving
 `stops` an initial value of the maximum number of `*` possible.
 
-Line 11 cycles through each of the three frameshifts in the direct sequence,
-translating each one in line 12, counting the number of `*` found in line 13
+Line 8 cycles through each of the three frameshifts in the direct sequence,
+translating each one in line 9, counting the number of `*` found in line 10
 and storing this sequence as the best of the three (so far) if the number of
-stops is lower than before in lines 14-16.
+stops is lower than before in lines 11-13.
 
-In the line 17 we echo the `Protein Sequence` and the number of stops.
+In the line 14 we echo the `Protein Sequence` and the number of stops.
 
     If you are having problems with Nim's notation for sequence slicing, go
     take a tour at the `slice Tutorial`_.
     Always leave spaces between the indexes and the inner operator (`..`).
 
-.. slice tutorial_: https://nim-lang.org/docs/tut1.html#advanced-types-slices>
+.. _slice Tutorial: https://nim-lang.org/docs/tut1.html#advanced-types-slices
 
 Sequence modifying
 ------------------

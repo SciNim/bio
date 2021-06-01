@@ -46,7 +46,8 @@ Just add a new requirement or expand the existing one:
 
 ..
 
-    **Q:** Is there any Docker image or equivalent? No.
+    **Q:** Is there any Docker image or equivalent?
+    **A:** No.
 
 Build the docs
 --------------

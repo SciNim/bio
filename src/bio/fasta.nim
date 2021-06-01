@@ -24,7 +24,7 @@ type
 ## =====================
 ##
 ## Given a Fasta file, 1.3 Gb in size, with ~40000 sequences and 30 kb per
-## sequence, do the following operations compiled with `-d danger` and timing
+## sequence, do the following operations compiled with `-d:danger` and timing
 ## with `/usr/bin/time -v`:
 ##
 ## ====================================   =========== ===============

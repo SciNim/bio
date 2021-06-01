@@ -1,3 +1,4 @@
+import math
 import strformat
 import strtabs
 import strutils
@@ -150,6 +151,46 @@ suite "Test Sequence operation":
 
     dna[2 .. 5] = "T"
     check dna.chain == "ACTGT"
+
+  test "Calculate sequence GC content":
+    check dna.gc == 6 / 9
+    check dnaT.gc == 6 / 9
+    check rnaT.gc == 6 / 9
+
+    # Lets do a slice
+    check dna[2 .. ^3].gc == 4 / 5
+
+    # Lets do a zero GC
+    check newDna("AAAAAATTTT").gc == 0
+
+    # Lets do a zero length sequence
+    check classify(newDna("").gc) == fcNan
+
+    # Lets try a upper/lower case mixed
+    check newDna("AcGTGGCT").gc == 5 / 8
+
+    # Lets try a protein
+    expect SequenceClassError:
+      discard proteinT.gc
+
+  test "Calculate sequence GC content at last position of codon":
+    let dnaTruncated = newDna("ACGACCTAACC")
+    check dna.gc3 == 2 / 3
+    check rnaT.gc3 == 2 / 3
+    check dnaTruncated.gc3 == 2 / 3
+
+    # Lets do a slice
+    check dna[2 .. ^2].gc3 == 1
+
+    # Lets do a zero GC
+    check newDna("AAAAAATTTT").gc3 == 0
+
+    # Lets do a zero length sequence
+    check classify(newDna("").gc3) == fcNan
+
+    # Lets try a protein
+    expect SequenceClassError:
+      discard proteinT.gc3
 
 suite "Test more complex sequence operations":
   setup:

@@ -107,7 +107,7 @@ An example, scanning sequences in a 500 Mb Fasta file with 5000 sequences:
         if sequence.name in seqs:
           echo sequence
 
-  .. code-block::
+  .. code-block:: python
 
       # Python code using Biopython
 

@@ -395,9 +395,8 @@ proc translate*(s: Sequence): Sequence =
   ##
   runnableExamples:
     doAssert newDna("ACGTGGGGT").translate.chain == "TWG"
-
-    doAssert newDna("ACGT--GGGGT").translate.chain == "TXGX"
-
+    doAssert newDna("ACGT--GGGGTA").translate.chain == "TXGV"  # Out of frame
+    doAssert newDna("ACG---GGGGT").translate.chain == "T-GX"  # In frame
     doAssert newDna("ACGTAAGGGGT").translate.chain == "T*GX"
 
   result = Sequence()
@@ -436,6 +435,7 @@ proc codon*(s: Sequence, position: int): Sequence =
     doAssert newDna("ACGTGGGGT").codon(0).chain == "ACG"
     doAssert newDna("ACGTGGGGT").codon(1).chain == "ACG"
     doAssert newDna("ACGTGGGGT").codon(2).chain == "ACG"
+    doAssert newDna("ACGTGGGGT").codon(3).chain == "TGG"
 
   result = Sequence()
 
@@ -456,3 +456,40 @@ proc codon*(s: Sequence, position: int): Sequence =
   else:
     raise newException(SequenceClassError,
                        &"Operation available only for {scDna} or {scRna}.")
+
+func gc_any(s: Sequence, stride: int = 1): float =
+  ## Return the GC content for the bases at `stride` positions.
+  ##
+  if s.class == scProtein:
+    raise newException(SequenceClassError,
+                       &"Operation available only for {scDna} or {scRna}.")
+
+  let stop: int = stride - 1
+  var cgs, length: int
+
+  for i, base in s.pairs:
+    if i mod stride == stop:
+      if base in {'C', 'c', 'G', 'g'}:
+        inc cgs
+      inc length
+  cgs / length
+
+proc gc*(s: Sequence): float =
+  ## Return the GC content for a given sequence, only for Dna and Rna.
+  ##
+  runnableExamples:
+    doAssert newDna("AcGTGGCT").gc == 5 / 8
+    doAssert newRna("ACGuGCAU").gc == 4 / 8
+
+  return s.gc_any(1)
+
+proc gc3*(s: Sequence): float =
+  ## Return the GC3 content for a given sequence, only for Dna and Rna.
+  ##
+  ## GC3 is the content of GC for the third codon positions.
+  ##
+  runnableExamples:
+    doAssert newDna("AcGTGGCT").gc3 == 2 / 2
+    doAssert newRna("ACGuGCAUA").gc3 == 2 / 3
+
+  s.gc_any(3)

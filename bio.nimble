@@ -39,7 +39,13 @@ proc buildDocs(rst, src: string) =
 
   for outputFile in listFiles(rst & "/htmldocs"):
     mvfile(outputFile, &"{splitPath(outputFile)[1]}")
+
+  for outputFile in listFiles(src & "/htmldocs"):
+    mvfile(outputFile, &"{splitPath(outputFile)[1]}")
+
   rmDir(&"{rst}/htmldocs")
+  rmDir(&"{src}/htmldocs")
+
 
 proc postDocs() =
   selfExec("buildIndex -o:theindex.html .")

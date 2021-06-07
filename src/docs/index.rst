@@ -28,7 +28,7 @@ your code. In your .nimble you will find the following lines:
 
     requires "nim >= 1.2.0"
 
-Just add a new requirement or expand the existing one:
+Add a new requirement or expand the existing one:
 
 .. code-block:: nim
 
@@ -130,16 +130,16 @@ An example, scanning sequences in a 500 Mb Fasta file with 5000 sequences:
 ============================================   ===========
 
 The same simple code could give you a 10x slower or a 50% faster program than
-Python, just by changing the compilation options.
+Python, changing the compilation options.
 
 Much more powerful reasons to use Nim + bio would be the distribution of
 binaries (you should be safe compiling in your computer and then moving the
-program around as a single file), the FFI_ (easy access to libraries like hts_)
-or the ease to do multithread_.
+program around as a single file), the FFI_ (access to libraries like hts_)
+or the multithreading_.
 
 
 .. _FFI: https://nim-lang.org/docs/manual.html#foreign-function-interface
-.. _multithread: https://nim-lang.org/docs/manual.html#threads
+.. _multithreading: https://nim-lang.org/docs/manual.html#threads
 .. _hts: http://www.htslib.org/
 
 

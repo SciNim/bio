@@ -18,7 +18,7 @@ Or
 How to get/read the docs
 ========================
 
-With the nimble tool, as easy as typing in the root of the repo:
+With the nimble tool, type at the root of the repo:
 
     $ nimble repodocs
 

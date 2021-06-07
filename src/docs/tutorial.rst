@@ -149,26 +149,26 @@ like files with uneven sequences:
 
 .. code-block::
 
-  import strutils
-  import bio/fasta
+  1   import strutils
+  2   import bio/fasta
 
-  let srs: seq[SequenceRecord] = load("sample.fasta")
+  3   let srs: seq[SequenceRecord] = load("sample.fasta")
 
-  var maxLen: int
-  for sr in srs:
-    maxLen = max(len(sr), maxLen)
+  4   var maxLen: int
+  5   for sr in srs:
+  6     maxLen = max(len(sr), maxLen)
 
-  for sr in srs:
-    sr.record.chain.add repeat('-', maxLen - len(sr))
+  7   for sr in srs:
+  8     sr.record.chain.add repeat('-', maxLen - len(sr))
 
-  srs.dumpTo("sample_output.fasta")
+  9   srs.dumpTo("sample_output.fasta")
 
-Wow, that was easy. In a first loop we find the longest sequence of the batch
-(lines 6-8). Then we modify *in place* every sequence adding as many `-` as
-they need to reach `maxLen` value.
+In a first loop we find the longest sequence of the batch (lines 5-6). Then we
+modify *in place* every sequence adding as many `-` as they need to reach
+`maxLen` value.
 
 In the last line we save, or dump, the data into a new file. If you copy-pasted
-the name of the file from the line 4 to the line 13, your original fasta will
+the name of the file from the line 3 to the line 9, your original fasta will
 be overwritten without warning.
 
     `dumpTo` is called so because I'm copying the `Python JSON`_ module naming.

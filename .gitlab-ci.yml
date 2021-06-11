@@ -5,6 +5,6 @@ pages:
     - echo 'Skip'
   artifacts:
     paths:
-      - htmldocs
+      - public
   only:
     - master

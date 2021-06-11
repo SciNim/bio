@@ -19,9 +19,10 @@ task test, "Full test suite":
   #exec "testament html"
   #exec "firefox testresults.html"
 
+const docDir = "public"
 proc docSetup =
-  mkdir("htmldocs")
-  cpFile("media/logo.svg", "htmldocs/logo.svg")
+  mkdir(docDir)
+  cpFile("media/logo.svg", &"{docDir}/logo.svg")
 
 proc preDocs =
   exec("rm *idx -f")
@@ -46,16 +47,15 @@ proc buildDocs(rst, src: string) =
   rmDir(&"{rst}/htmldocs")
   rmDir(&"{src}/htmldocs")
 
-
 proc postDocs() =
   selfExec("buildIndex -o:theindex.html .")
   # Download the JS only if it's newest than the local one.
   exec("curl -LO -z dochack.js " & "https://nim-lang.github.io/Nim/dochack.js")
 
-task docs, "Deploy doc html + search index to public/ directory":
+task docs, &"Deploy doc html + search index to {docDir}/ directory":
   docSetup()
 
-  withDir "htmldocs":
+  withDir docDir:
     preDocs()
     buildDocs(rst = "../docs", src = "../bio")
     postDocs()
@@ -63,7 +63,7 @@ task docs, "Deploy doc html + search index to public/ directory":
 task repodocs, "Deploy docs, but from repo":
   docSetup()
 
-  withDir "htmldocs":
+  withDir docDir:
     preDocs()
     buildDocs(rst = "../src/docs", src = "../src/bio")
     cpFile("../media/logo.svg", "logo.svg")

@@ -2,7 +2,7 @@ What am I
 =========
 
 <img src="media/logo.svg" width="200" />
-[TDB: A brief self description]
+A library to work with biological sequences.
 
 How to install
 ==============
@@ -18,18 +18,21 @@ Or
 How to get/read the docs
 ========================
 
-With the nimble tool, type at the root of the repo:
+Built docs are at https://xbello.gitlab.io/bio/
+
+You can also build your own docs.  With the nimble tool, type at the root of
+the repo:
 
     $ nimble repodocs
 
-The script creates a "htmldocs" directory, scans the source code for docs,
+The script creates a "public" directory, scans the source code for docs,
 runs the embedded doc-tests and finally build the documentation as a webpage.
-Open the file "htmldocs/index.html" in any browser.
+Open the file "public/index.html" in any browser.
 
-The "htmldocs" directory can be moved around to any place of your convenience.
+The "public" directory can be moved around to any place of your convenience.
 
-How to work with me
-===================
+How to work with bio
+====================
 
 This library doesn't provide any functionality as executables out of the box.
 Refer to the Tutorial and Cookbook in the Documentation you generated above to

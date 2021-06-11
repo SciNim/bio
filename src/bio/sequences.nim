@@ -188,7 +188,7 @@ proc `[]=`*[T, U](s: Sequence, x: HSlice[T, U], b: string) =
   s.chain[x] = b
 
 proc `[]=`*[T, U](s: SequenceRecord, x: HSlice[T, U], b: string) =
-  ## Replaces a stretch in the chain of a `Sequence<#Sequence>`_.
+  ## Replaces a stretch in the chain of a `SequenceRecord<#SequenceRecord>`_.
   runnableExamples:
     let rna: Sequence = newRna("ACGUGGGGU")
     let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
@@ -198,6 +198,7 @@ proc `[]=`*[T, U](s: SequenceRecord, x: HSlice[T, U], b: string) =
 
     rna[^2 .. ^1] = "TT"
     doAssert rna.chain == "AATGGGTT"
+
   s.record.chain[x] = b
 
 iterator items*(s: Sequence): char =
@@ -272,7 +273,7 @@ iterator pairs*(sr: SequenceRecord): tuple[a: int, b: char] =
     inc i
 
 proc zip*(sr1, sr2: SequenceRecord): seq[(char, char)] =
-  ## Zips_ two `SequenceRecord<#SequenceRecord>`_ in tuples of bases
+  ## Zips_ two `SequenceRecord<#SequenceRecord>`_ in tuples of bases.
   ##
   ##  .. _Zips: https://nim-lang.org/docs/sequtils.html#zip%2C%2C
   runnableExamples:
@@ -441,14 +442,13 @@ proc codon*(s: Sequence, position: int): Sequence =
   ## Return a new `Sequence<#Sequence>`_ which is a triplete that includes
   ## the position.
   ##
-  ## `position` parameter doesn't account for gaps, meaning that the `A` in the
-  ## sequence `---------A---T` is in position 0, and the `T` is in 1.
+  ## `position` parameter doesn't account for gaps, meaning that in the
+  ## sequence `---------A---T` the `A` is in position 0, and the `T` is in 1.
   ##
   ## All the operations are zero-indexed: if you target the last base of the
   ## first codon, the position is **2**.
   runnableExamples:
     doAssert newDna("ACGTGGGGT").codon(6).chain == "GGT"
-
     doAssert newRna("A--CGUGGGGU").codon(1).chain == "ACG"
 
   runnableExamples:

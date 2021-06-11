@@ -26,27 +26,28 @@ your code. In your .nimble you will find the following lines:
 
     # Dependencies
 
-    requires "nim >= 1.2.0"
+    requires "nim >= 1.4.8"
 
 Add a new requirement or expand the existing one:
 
 .. code-block:: nim
 
-    requires "nim >= 1.2.0"
-    requires "bio 0.2.0"
+    requires "nim >= 1.4.8"
+    requires "bio 0.2.7"
 
 .. code-block:: nim
 
-    requires "nim >= 1.2.0"
-    requires "https://gitlab.com/xbello/bio 0.2.0"
+    requires "nim >= 1.4.8"
+    requires "https://gitlab.com/xbello/bio 0.2.7"
 
 .. code-block:: nim
 
-    requires "nim >= 1.2.0, bio 0.2.0"
+    requires "nim >= 1.4.8, bio 0.2.7"
 
 ..
 
     **Q:** Is there any Docker image or equivalent?
+
     **A:** No.
 
 Build the docs
@@ -61,12 +62,14 @@ Nimble install the packages at ~/.nimble/pkgs/bio-|libversion| (UNIX) or at
     $ nimble docs
 
 Doctests will be run and if everything goes smoothly, you will get a local copy
-of the docs at `htmldocs/`, in sync with your version, that you can browse
-opening `htmldocs/index.html`. This path is self-contained, i.e. you can move
+of the docs at `public/`, in sync with your version, that you can browse
+opening `public/index.html`. This path is self-contained, i.e. you can move
 it wherever you like and it will work. Even if the library updates and the docs
 changes, your local copy will be intact.
 
-If you prefer the latests online version, go to [TBD: online docs].
+If you prefer the latests online version, go to `Gitlab Bio docs`_.
+
+.. _Gitlab Bio docs: https://xbello.gitlab.io/bio/
 
 Usage
 =====

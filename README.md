@@ -1,8 +1,8 @@
-What am I
-=========
+What is Bio
+===========
 
 <img src="media/logo.svg" width="200" />
-A library to work with biological sequences.
+A library to work with biological sequences. Using Nim.
 
 How to install
 ==============
@@ -15,10 +15,12 @@ Or
 
     $ nimble install https://gitlab.com/xbello/bio
 
+Click here if you need to install [Nim](https://nim-lang.org/).
+
 How to get/read the docs
 ========================
 
-Built docs are at https://xbello.gitlab.io/bio/
+Already built docs are at https://xbello.gitlab.io/bio/
 
 You can also build your own docs.  With the nimble tool, type at the root of
 the repo:
@@ -35,5 +37,5 @@ How to work with bio
 ====================
 
 This library doesn't provide any functionality as executables out of the box.
-Refer to the Tutorial and Cookbook in the Documentation you generated above to
-get a glimpse of what you can do with it.
+Refer to the Tutorial and Cookbook in the Documentation to get a glimpse of
+what you can do with it.

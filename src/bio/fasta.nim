@@ -1,5 +1,6 @@
 ## :Author: |author|
 ## :Version: |libversion|
+import streams
 import strformat
 import strutils
 import tables
@@ -72,6 +73,48 @@ type
 ## That is about 100x faster and uses 100x less memory than the equivalent
 ## `bio` code.
 ##
+iterator sequences*(strm: Stream, kind: FileType=ftFasta):
+  SequenceRecord {.inline.} =
+  ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
+  ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
+  ##
+  ## .. code-block::
+  ##
+  ##   import streams
+  ##   import bio/fasta
+  ##
+  ##   var strm = newFileStream("path/to/file.fas")
+  ##
+  ##   for sequence in sequences(strm):
+  ##     doAssert(sequence of SequenceRecord)
+  ##
+  ## Reading Streams allows you to consume compressed files directly, e.g.:
+  ##
+  ## .. code-block::
+  ##
+  ##   import zip/gzipfiles # Requires https://github.com/nim-lang/zip
+  ##
+  ##   import streams
+  ##   import bio/fasta
+  ##
+  ##   var strm = newGzFileStream("path/to/file.fas.gz")
+  ##
+  ##   for sequence in sequences(strm):
+  ##     doAssert(sequence of SequenceRecord)
+  ##
+  var name, sequence, line: string
+  while strm.readLine(line):
+    if (line.startsWith('>') and sequence.len > 0) or strm.atEnd:
+      if strm.atEnd:
+        sequence.add line
+      yield SequenceRecord(name: name, record: guess(sequence.toUpperAscii))
+
+    if line.startsWith('>'):
+      sequence = ""
+      name = line[1 .. ^1]
+    else:
+      sequence.add line
+
 iterator sequences*(data: seq[string], kind: FileType=ftFasta):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
@@ -87,21 +130,10 @@ iterator sequences*(data: seq[string], kind: FileType=ftFasta):
   ##
   ##   for sequence in sequences(data):
   ##     doAssert(sequence of SequenceRecord)
-  # XXX This can be probably done unified with the other sequences(file)
-  #     through Streams
-  let last: int = data.len - 1
-  var name, sequence: string
-  for i, line in data.pairs:
-    if (line.startsWith('>') and sequence.len > 0) or i == last:
-      if i == last:
-        sequence.add line
-      yield SequenceRecord(name: name, record: guess(sequence.toUpperAscii))
+  let strm = newStringStream(join(data, "\n"))
 
-    if line.startsWith('>'):
-      sequence = ""
-      name = line[1 .. ^1]
-    else:
-      sequence.add line
+  for sr in strm.sequences():
+    yield sr
 
 iterator sequences*(fName: string, kind: FileType=ftFasta):
   SequenceRecord {.inline.} =
@@ -115,21 +147,10 @@ iterator sequences*(fName: string, kind: FileType=ftFasta):
   ##   for sequence in sequences("path/to/file.fas"):
   ##     doAssert(sequence of SequenceRecord)
 
-  let fileIn: File = open(fName)
-  defer: fileIn.close
+  let strm = newFileStream(fName)
 
-  var name, sequence: string
-  for line in fileIn.lines:
-    if (line.startsWith('>') and sequence.len > 0) or fileIn.endOfFile:
-      if fileIn.endOfFile:
-        sequence.add line
-      yield SequenceRecord(name: name, record: guess(sequence.toUpperAscii))
-
-    if line.startsWith('>'):
-      sequence = ""
-      name = line[1 .. ^1]
-    else:
-      sequence.add line
+  for sr in strm.sequences():
+    yield sr
 
 proc newIndex*(fName: string): Index =
   ## Build an `Index<#Index>`_ for a given fasta file.

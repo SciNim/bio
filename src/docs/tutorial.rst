@@ -139,6 +139,32 @@ In the line 14 we echo the `Protein Sequence` and the number of stops.
 
 .. _slice Tutorial: https://nim-lang.org/docs/tut1.html#advanced-types-slices
 
+Iterate a file
+--------------
+
+Sometimes you have big files that you don't want or can load into memory.
+Going through each sequence can help. You can iterate Fastas or compressed
+Fastas (using a third party library like zip_).
+
+.. code-block::
+
+    import bio/fasta
+
+    for sequence in sequences("sample.fasta"):
+      echo sequence.name, " GC-content: ",
+        sequence.record.chain.count({'C', 'G'}) /
+        sequence.record.chain.count({'A', 'C', 'G', 'T'})
+
+.. code-block::
+
+    import zip/gzipfiles
+    import bio/fasta
+
+    for sequence in sequences(newGzFileStream("sample.fasta.gz")):
+      echo sequence.name
+
+.. _zip: https://github.com/nim-lang/zip
+
 Sequence modifying
 ------------------
 

@@ -8,6 +8,7 @@ import unicode
 import tables
 
 import data
+export data
 
 type
   Feature* = ref object of RootObj
@@ -28,7 +29,7 @@ type
     chain*: string
     class*: SequenceClass
 
-  SequenceRecord* = ref object of RootObj
+  SequenceRecord* = object of RootObj
     ## An intermediate construct to hold a `Sequence<#Sequence>`_ while naming
     ## it.
     name*: string
@@ -269,6 +270,25 @@ iterator pairs*(sr: SequenceRecord): tuple[a: int, b: char] =
   for c in sr.record:
     yield (a: i, b: c)
     inc i
+
+proc zip*(sr1, sr2: SequenceRecord): seq[(char, char)] =
+  ## Zips_ two `SequenceRecord<#SequenceRecord>`_ in tuples of bases
+  ##
+  ##  .. _Zips: https://nim-lang.org/docs/sequtils.html#zip%2C%2C
+  runnableExamples:
+    let rna: Sequence = newRna("ACGUGGGGU")
+    let srRna = SequenceRecord(name: "MyRna", record: rna)
+    let dna: Sequence = newDna("ACGTGGGGT")
+    let srDna = SequenceRecord(name: "MyDna", record: dna)
+
+    var pairs: seq[tuple[a, b: char]]
+    for pair in zip(srDna, srRna):
+      pairs.add pair
+
+    doAssert pairs[0] == ('A', 'A')
+    doAssert pairs[^1] == ('T', 'U')
+
+  zip(sr1.record.chain, sr2.record.chain)
 
 proc len*(s: Sequence): int =
   ## Get the length of a `Sequence<#Sequence>`_ chain.

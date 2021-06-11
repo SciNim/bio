@@ -1,4 +1,5 @@
 import math
+import sugar
 import strformat
 import strtabs
 import strutils
@@ -284,6 +285,17 @@ suite "Test sequenceRecord operations":
     let gapped: Sequence = newDna("A-CTGGTG-GA")
     check gapped.codon(2) ?= expectedA
     check gapped.codon(6) ?= expectedB
+
+  test "Zipping two SequenceRecords":
+    let sequence2: Sequence = newDna("GTGCATCAGT")
+    let sr2: SequenceRecord = SequenceRecord(name: "S2", record: sequence2)
+
+    let pairs = collect(newSeq):
+      for s in zip(sr, sr2):
+        s
+
+    for i, _ in sequence.pairs:
+      check pairs[i] == (sequence[i], sequence2[i])
 
 suite "Test SequenceRecord Features":
   setup:

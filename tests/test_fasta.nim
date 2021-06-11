@@ -1,9 +1,12 @@
 import os
 import posix_utils
+import streams
 import strformat
 import strutils
 import tables
 import unittest
+
+import zip/gzipfiles
 
 import bio/sequences
 import bio/fasta
@@ -122,6 +125,34 @@ suite "Test SequenceRecord operation":
       fastaFile.add line
 
     check fastaFile == @[">Sample", "ACGTGGGGT", ">Sample", "ACGTGGGGT"]
+
+  test "Read records from a stream":
+    let strm = newFileStream(getAppDir() / "test_files/regular.fas")
+    var records: seq[SequenceRecord]
+
+    for s in sequences(strm):
+      records.add(s)
+
+    check records.len == 2
+    check records[0].name == "First sequence"
+    check records[1].name == "Second sequence"
+    check records[0].record.chain.len == 120
+    check records[1].record.chain.len == 120
+    check records[0].record.class == scDna
+
+  test "Read records from a compressed file through streams":
+    let strm = newGzFileStream(getAppDir() / "test_files/regular.fas.gz")
+    var records: seq[SequenceRecord]
+
+    for s in sequences(strm):
+      records.add(s)
+
+    check records.len == 2
+    check records[0].name == "First sequence"
+    check records[1].name == "Second sequence"
+    check records[0].record.chain.len == 120
+    check records[1].record.chain.len == 120
+    check records[0].record.class == scDna
 
 suite "Operations with FASTA files":
   setup:

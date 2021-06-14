@@ -1,7 +1,7 @@
 What is Bio
 ===========
 
-<img src="media/logo.svg" width="200" />
+<img src="src/media/logo.svg" width="200" />
 A library to work with biological sequences. Using Nim.
 
 How to install

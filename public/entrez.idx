@@ -1,3 +1,0 @@
-Entrez	entrez.html#Entrez	entrez: Entrez	
-newEntrez	entrez.html#newEntrez,string	entrez: newEntrez(apiKey: string): Entrez	
-fetchId	entrez.html#fetchId,Entrez,string,string	entrez: fetchId(e: Entrez; db, id: string): SequenceRecord	

@@ -1,4 +1,4 @@
-image: nimlang/nim
+image: nimlang/nim:alpine
 pages:
   stage: deploy
   script:

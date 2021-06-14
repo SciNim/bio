@@ -22,7 +22,10 @@ task test, "Full test suite":
 const docDir = "public"
 proc docSetup =
   mkdir(docDir)
-  cpFile("media/logo.svg", &"{docDir}/logo.svg")
+  if fileExists("media/logo.svg"):
+    cpFile("media/logo.svg", &"{docDir}/logo.svg")
+  if fileExists("src/media/logo.svg"):
+    cpFile("src/media/logo.svg", &"{docDir}/logo.svg")
 
 proc preDocs =
   exec("rm *idx -f")
@@ -33,19 +36,11 @@ proc preDocs =
 proc buildDocs(rst, src: string) =
   for rst_src in ["index.rst", "tutorial.rst", "recipes.rst"]:
     # TODO: Add a "if newer" here.
-    selfExec(&"rst2html {rst}/{rst_src}")
+    let outHtml = rst_src.replace(".rst", ".html")
+    selfExec(&"-o:{outHtml} rst2html {rst}/{rst_src}")
 
   for nim_src in ["sequences", "fasta", "entrez"]:
-    selfExec(&"doc --project --index:on {src}/{nim_src}.nim")
-
-  for outputFile in listFiles(rst & "/htmldocs"):
-    mvfile(outputFile, &"{splitPath(outputFile)[1]}")
-
-  for outputFile in listFiles(src & "/htmldocs"):
-    mvfile(outputFile, &"{splitPath(outputFile)[1]}")
-
-  rmDir(&"{rst}/htmldocs")
-  rmDir(&"{src}/htmldocs")
+    selfExec(&"doc --project --index:on --outdir:. {src}/{nim_src}.nim")
 
 proc postDocs() =
   selfExec("buildIndex -o:theindex.html .")
@@ -66,5 +61,4 @@ task repodocs, "Deploy docs, but from repo":
   withDir docDir:
     preDocs()
     buildDocs(rst = "../src/docs", src = "../src/bio")
-    cpFile("../media/logo.svg", "logo.svg")
     postDocs()

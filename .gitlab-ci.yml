@@ -1,8 +1,8 @@
-image: alpine:latest
+image: nimlang/nim
 pages:
   stage: deploy
   script:
-    - echo 'Skip'
+    - nimble repodocs
   artifacts:
     paths:
       - public

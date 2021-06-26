@@ -16,6 +16,22 @@ type
     location*: string
     qualifiers*: StringTableRef
 
+  MetaKind* = enum
+    mkInt,
+    mkFloat,
+    mkSeqInt8,
+    mkString,
+    mkTableString
+
+  Meta* = ref MetaObj
+  MetaObj = object
+    case kind*: MetaKind
+    of mkInt: metaInt*: int
+    of mkFloat: metaFloat*: float
+    of mkSeqInt8: metaSeqInt8*: seq[int8]
+    of mkString: metaString*: string
+    of mkTableString: metaTableString*: StringTableRef
+
   SequenceClass* = enum
     ## The class of the sequence, being `scSequence` a generic one.
     scSequence = "Sequence",
@@ -35,6 +51,7 @@ type
     name*: string
     record*: Sequence
     features*: seq[Feature]
+    meta*: Table[string, Meta]
 
   SequenceClassError* = object of ValueError
 

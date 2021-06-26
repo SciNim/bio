@@ -25,7 +25,7 @@ suite "Test SequenceRecord operation":
   test "Write records as a FASTA through filename":
     dnaRecord.dumpTo(tmpOutput[0], ftFasta)
 
-    check existsFile(tmpOutput[0])
+    check fileExists(tmpOutput[0])
 
     let fastaFile = tmpOutput[0].readLines(2)
 
@@ -49,8 +49,8 @@ suite "Test SequenceRecord operation":
     check fastaFile[1] == dna.chain[0 .. 59]
 
   test "Load records from FASTA through filename":
-    let records: seq[SequenceRecord] = load(getAppDir() /
-                                            "test_files/regular.fas")
+    let records: seq[SequenceRecord] = load(currentSourcePath().parentDir /
+                                            "test_files" / "regular.fas")
 
     check records.len == 2
     check records[0].name == "First sequence"
@@ -62,7 +62,7 @@ suite "Test SequenceRecord operation":
   test "Load record from FASTA through iterator + filename":
     var records: seq[SequenceRecord]
 
-    for s in sequences(getAppDir() / "test_files/regular.fas"):
+    for s in sequences(currentSourcePath().parentDir / "test_files" / "regular.fas"):
       records.add s
 
     check records.len == 2
@@ -76,21 +76,21 @@ suite "Test SequenceRecord operation":
     test "The empty file: returns empty seq":
       var records: seq[SequenceRecord]
 
-      for s in sequences(getAppDir() / "test_files/empty.fas"):
+      for s in sequences(currentSourcePath().parentDir / "test_files" / "empty.fas"):
         records.add s
 
       check records.len == 0
 
     test "The lonely sequence: returns a seq with only one sequence":
       var records: seq[SequenceRecord]
-      for s in sequences(getAppDir() / "test_files/one_sequence.fas"):
+      for s in sequences(currentSourcePath().parentDir / "test_files" / "one_sequence.fas"):
         records.add s
 
       check records.len == 1
 
     test "The lonely sequence but with extra blank line at end":
       var records: seq[SequenceRecord]
-      for s in sequences(getAppDir() / "test_files/one_sequence_extraline.fas"):
+      for s in sequences(currentSourcePath().parentDir / "test_files" / "one_sequence_extraline.fas"):
         records.add s
 
       check records.len == 1
@@ -118,7 +118,7 @@ suite "Test SequenceRecord operation":
 
     multiRecords.dumpTo(tmpOutput[1], ftFasta)
 
-    check existsFile(tmpOutput[0])
+    check fileExists(tmpOutput[0])
 
     var fastaFile: seq[string]
     for line in tmpOutput[0].lines:
@@ -127,7 +127,7 @@ suite "Test SequenceRecord operation":
     check fastaFile == @[">Sample", "ACGTGGGGT", ">Sample", "ACGTGGGGT"]
 
   test "Read records from a stream":
-    let strm = newFileStream(getAppDir() / "test_files/regular.fas")
+    let strm = newFileStream(currentSourcePath().parentDir / "test_files" / "regular.fas")
     var records: seq[SequenceRecord]
 
     for s in sequences(strm):
@@ -141,7 +141,7 @@ suite "Test SequenceRecord operation":
     check records[0].record.class == scDna
 
   test "Read records from a compressed file through streams":
-    let strm = newGzFileStream(getAppDir() / "test_files/regular.fas.gz")
+    let strm = newGzFileStream(currentSourcePath().parentDir / "test_files" / "regular.fas.gz")
     var records: seq[SequenceRecord]
 
     for s in sequences(strm):
@@ -156,7 +156,7 @@ suite "Test SequenceRecord operation":
 
 suite "Operations with FASTA files":
   setup:
-    let fastaF: string = getAppDir() / "test_files/regular.fas"
+    let fastaF: string = currentSourcePath().parentDir / "test_files" / "regular.fas"
 
   test "Index building":
     let tbl = {"First sequence": 0'i64, "Second sequence": 138'i64}.newTable

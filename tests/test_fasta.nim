@@ -6,10 +6,9 @@ import strutils
 import tables
 import unittest
 
-import zip/gzipfiles
+import zip / gzipfiles
 
-import bio/sequences
-import bio/fasta
+import bio / [fasta, io]
 
 
 suite "Test SequenceRecord operation":

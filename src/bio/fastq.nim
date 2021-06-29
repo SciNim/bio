@@ -41,13 +41,12 @@ import strscans
 import strutils
 import tables
 
+import io
 import sequences
 export sequences
 
 
 type
-  FileType* = enum
-    ftFastq = "fastq"
   TagName* = enum
     tnNone,
     tnIllumina,

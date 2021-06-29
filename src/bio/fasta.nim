@@ -5,15 +5,11 @@ import strformat
 import strutils
 import tables
 
+import io
 import sequences
 export sequences
 
-
 type
-  FileType* = enum
-    ## The filetype, to allow potential future filetypes handling.
-    ftFasta = "fasta"
-
   Index* = ref object of RootObj
     ## The index is a `table` with the name of the sequence as a string, except
     ## the initial '>', and its position in the file. The filename which the

@@ -11,9 +11,9 @@ In you have Nim and Nimble installed, type:
 
     $ nimble install bio
 
-Or
+Or (version is optional):
 
-    $ nimble install https://gitlab.com/xbello/bio
+    $ nimble install https://github.com/SciNim/bio 0.2.7
 
 Click here if you need to install [Nim](https://nim-lang.org/).
 

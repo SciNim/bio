@@ -54,22 +54,19 @@ type
     tnIlluminaOld,
     tnNcbiSra
 
-proc yn(input: string, value: var string, start: int): int =
-  while result + start < input.len and input[result + start] in {'Y', 'N'}:
+template scan(charSet: typed) =
+  while result + start < input.len and input[result + start] in charSet:
     value.add input[result + start]
     result.inc
+
+proc yn(input: string, value: var string, start: int): int =
+  scan({'Y', 'N'})
 
 proc bases(input: string, value: var string, start: int): int =
-  const validChars = Digits + {'A' .. 'Z'}
-  while result + start < input.len and input[result + start] in validChars:
-    value.add input[result + start]
-    result.inc
+  scan(Digits + {'A' .. 'Z'})
 
 proc alnum(input: string, value: var string, start: int): int =
-  const validChars = {'!' .. '~'} - {':'}  # Every ascii from 33
-  while result + start < input.len and input[result + start] in validChars:
-    value.add input[result + start]
-    result.inc
+  scan({'!' .. '~'} - {':'})  # Every ascii from 33
 
 proc parseTag*(tag: string, tagName: TagName = tnNone): Table[string, MetaObj] =
   ## Parses the sequence identifier into its parts

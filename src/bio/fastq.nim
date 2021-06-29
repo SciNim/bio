@@ -1,4 +1,5 @@
-# Straight from the Wikipedia:
+# Straight from the Wikipedia: https://en.wikipedia.org/wiki/FASTQ_format
+#
 # A FASTQ file normally uses four lines per sequence.
 #
 #  Line 1 begins with a '@' character and is followed by a sequence identifier
@@ -25,6 +26,12 @@
 #
 #   @SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72
 #   ID IlluminaTag length
+#
+# The logic has to change:
+#  - Find the first @
+#  - Read Sequence until +
+#  - Read Quality until len(quality) == len(sequence)
+#  - Repeat (check that a new @ exists)
 #
 ## :Author: |author|
 ## :Version: |libversion|
@@ -69,39 +76,31 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ##     doAssert(sequence of SequenceRecord)
   ##
   var name, sequence, quality, line: string
-  var firstPlusFound: bool
+  var loadQuality: bool
 
   while strm.readLine(line):
-    if (line.startsWith('@') and sequence.len > 0 and quality.len > 0) or strm.atEnd:
+    if (line.startsWith('@') and
+        len(sequence) > 0 and len(quality) == len(sequence)) or strm.atEnd:
       if strm.atEnd:
         quality.add line
       let meta = {"quality": Meta(kind: mkString, metaString: quality)}.toTable
       yield SequenceRecord(name: name,
                            record: guess(sequence.toUpperAscii),
                            meta: meta)
-      name = ""
-    if line.startsWith('@'): # Can be Name or Quality
-      if name.isEmptyOrWhitespace:
+      loadQuality = false
+      sequence = ""
+
+    if loadQuality:  # '+' was detected, we are in quality lines
+      if len(quality) < len(sequence):
+        quality.add line
+    else:  # Is either name, sequence or the '+' separator line
+      if line.startsWith('@'):  # Is the name line
         name = line[1 .. ^1]
-        sequence = ""
-        quality = ""
-        firstPlusFound = false
-        continue
-      if quality.isEmptyOrWhitespace:
-        quality = line.strip()
-        # At this point, SequenceRecord is ready, yield at top
-        continue
-    elif line.startsWith('+'): # Can be marker or Quality
-      if firstPlusFound: # is Quality
-        quality = line.strip()
-      else:
-        firstPlusFound = true
-      continue
-    else: # Either Sequence or Quality lines
-      if sequence.isEmptyOrWhitespace:
-        sequence = line.strip()
-      else:
-        quality = line.strip()
+      elif line.startsWith('+'):  # The '+' separator
+        loadQuality = true
+        quality = newStringOfCap(len(sequence))
+      else:  # Is sequence
+        sequence.add line
 
 iterator sequences*(fName: string, kind: FileType=ftFastq): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given

@@ -35,7 +35,9 @@
 #
 ## :Author: |author|
 ## :Version: |libversion|
+import sets
 import streams
+import strscans
 import strutils
 import tables
 
@@ -46,6 +48,72 @@ export sequences
 type
   FileType* = enum
     ftFastq = "fastq"
+  TagName* = enum
+    tnNone,
+    tnIllumina,
+    tnIlluminaOld,
+    tnNcbiSra
+
+proc yn(input: string, value: var string, start: int): int =
+  while result + start < input.len and input[result + start] in {'Y', 'N'}:
+    value.add input[result + start]
+    result.inc
+
+proc bases(input: string, value: var string, start: int): int =
+  const validChars = Digits + {'A' .. 'Z'}
+  while result + start < input.len and input[result + start] in validChars:
+    value.add input[result + start]
+    result.inc
+
+proc alnum(input: string, value: var string, start: int): int =
+  const validChars = {'!' .. '~'} - {':'}  # Every ascii from 33
+  while result + start < input.len and input[result + start] in validChars:
+    value.add input[result + start]
+    result.inc
+
+proc parseTag*(tag: string, tagName: TagName = tnNone): Table[string, MetaObj] =
+  ## Parses the sequence identifier into its parts
+  ##
+  ## TODO example here
+  var instrumentId, runId, flowCellId, index, filtered, empty: string
+  var flowCellLane, tileNumber, xTile, yTile, pairing, readNumber: int
+  case tagName
+  of tnIllumina:
+    if scanf(tag, "${alnum}:${alnum}:${alnum}:$i:$i:$i:$i $i:${yn}:$i:${alnum}",
+             instrumentId, runId, flowCellId, flowCellLane, tileNumber, xTile,
+             yTile, readNumber, filtered, pairing, index):
+      result["instrumentId"] = MetaObj(kind: mkString, metaString: instrumentId)
+      result["runId"] = MetaObj(kind: mkString, metaString: runId)
+      result["flowCellId"] = MetaObj(kind: mkString, metaString: flowCellId)
+      result["flowCellLane"] = MetaObj(kind: mkInt, metaInt: flowCellLane)
+      result["tileNumber"] = MetaObj(kind: mkInt, metaInt: tileNumber)
+      result["xTile"] = MetaObj(kind: mkInt, metaInt: xTile)
+      result["yTile"] = MetaObj(kind: mkInt, metaInt: yTile)
+
+      result["readNumber"] = MetaObj(kind: mkInt, metaInt: readNumber)
+      result["isFiltered"] = MetaObj(kind: mkString, metaString: filtered)
+      result["control"] = MetaObj(kind: mkInt, metaInt: pairing)
+      result["barcode"] = MetaObj(kind: mkString, metaString: index)
+  of tnIlluminaOld:
+    if scanf(tag, "${alnum}:$i:$i:$i:$i#${bases}/$i", instrumentId, flowCellLane,
+             tileNumber, xTile, yTile, index, pairing):
+      result["instrumentId"] = MetaObj(kind: mkString, metaString: instrumentId)
+      result["flowCellLane"] = MetaObj(kind: mkInt, metaInt: flowCellLane)
+      result["tileNumber"] = MetaObj(kind: mkInt, metaInt: tileNumber)
+      result["xTile"] = MetaObj(kind: mkInt, metaInt: xTile)
+      result["yTile"] = MetaObj(kind: mkInt, metaInt: yTile)
+      result["index"] = MetaObj(kind: mkString, metaString: index)
+      result["pairing"] = MetaObj(kind: mkInt, metaInt: pairing)
+  of tnNcbiSra:
+    if scanf(tag, "${alnum} ${alnum}:$i:$i:$i:$i", empty, instrumentId, flowCellLane,
+             tileNumber, xTile, yTile, index, pairing):
+      result["instrumentId"] = MetaObj(kind: mkString, metaString: instrumentId)
+      result["flowCellLane"] = MetaObj(kind: mkInt, metaInt: flowCellLane)
+      result["tileNumber"] = MetaObj(kind: mkInt, metaInt: tileNumber)
+      result["xTile"] = MetaObj(kind: mkInt, metaInt: xTile)
+      result["yTile"] = MetaObj(kind: mkInt, metaInt: yTile)
+  else:
+    return
 
 iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
@@ -83,7 +151,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
         len(sequence) > 0 and len(quality) == len(sequence)) or strm.atEnd:
       if strm.atEnd:
         quality.add line
-      let meta = {"quality": Meta(kind: mkString, metaString: quality)}.toTable
+      let meta = {"quality": MetaObj(kind: mkString, metaString: quality)}.toTable
       yield SequenceRecord(name: name,
                            record: guess(sequence.toUpperAscii),
                            meta: meta)

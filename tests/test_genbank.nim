@@ -13,7 +13,8 @@ suite "Test SequenceRecord operation":
     #var dnaRecord = SequenceRecord(record: dna, name: "Sample")
 
   test "Load a Genbank file as a Sequence Record":
-    var gb: seq[SequenceRecord] = load(getAppDir() / "test_files/noref.gb")
+    var gb: seq[SequenceRecord] = load(currentSourcePath().parentDir /
+                                       "test_files" / "noref.gb")
 
     check gb[0].name == "Homo sapiens dynein, cytoplasmic, " &
                         "light intermediate polypeptide 2 (DNCLI2), mRNA."
@@ -22,7 +23,8 @@ suite "Test SequenceRecord operation":
     check gb[0].record.chain.endsWith("AAAAAAAAAAAA")
 
   test "Load a Genbank file and get the Features included":
-    var gb: seq[SequenceRecord] = load(getAppDir() / "test_files/noref.gb")
+    var gb: seq[SequenceRecord] = load(currentSourcePath().parentDir /
+                                       "test_files" / "noref.gb")
 
     check len(gb[0].features) == 3
     check gb[0].features[0].key == "source"

@@ -103,7 +103,7 @@ proc `$`*(sr: SequenceRecord): string =
 
 proc `$`*(bi: BackwardsIndex): string = &"^{bi.int}"
 
-proc `?=`*(a, b: Sequence): bool =
+proc `==`*(a, b: Sequence): bool =
   ## Compare two `Sequence<#Sequence>`_. `true` if both `class` and `chain` are
   ## the same.
   runnableExamples:

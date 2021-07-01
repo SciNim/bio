@@ -47,46 +47,50 @@ suite "Test Sequence operation":
     check proteinT.class == scProtein
 
   test "DNA complement":
-    check dnaT.complement ?= newDna("TGCACCCCA")
+    check dnaT.complement == newDna("TGCACCCCA")
 
   test "DNA reverse complement":
-    check dnaT.reverseComplement ?= newDna("ACCCCACGT")
+    check dnaT.reverseComplement == newDna("ACCCCACGT")
 
   test "DNA translation":
     ## Remember: DNA to protein
-    check dnaT.translate ?= proteinT
+    check dnaT.translate == proteinT
 
   test "DNA translations with indefinitions":
     # Check the indefinitions
     let oddDna: Sequence = newDna("ACGTGGGGTT")
-    check oddDna.translate ?= newProtein("TWGX")
+    check oddDna.translate == newProtein("TWGX")
 
     let delDna: Sequence = newDna("ACGT-GGGT")
-    check delDna.translate ?= newProtein("TXG")
+    check delDna.translate == newProtein("TXG")
 
   test "DNA transcription":
     ## Remember: DNA to RNA
-    check dnaT.transcript ?= rnaT
+    check dnaT.transcript == rnaT
 
   test "RNA back transcribe":
     ## Remember: RNA to DNA
-    check rnaT.backTranscript ?= dnaT
+    check rnaT.backTranscript == dnaT
 
   test "RNA complement":
-    check rnaT.complement ?= newRna("UGCACCCCA")
+    check rnaT.complement == newRna("UGCACCCCA")
 
   test "RNA reverse complement":
-    check rnaT.reverseComplement ?= newRna("ACCCCACGU")
+    check rnaT.reverseComplement == newRna("ACCCCACGU")
 
   test "RNA translation":
-    check rnaT.translate ?= proteinT
+    check rnaT.translate == proteinT
+
+  test "Sequence equality/inequality":
+    check dna == dna
+    check dna != rnaT
 
   test "Sequence class guessed":
-    check guess(dnaT.chain) ?= newDna("ACGTGGGGT")
-    check guess(rnaT.chain) ?= newRna("ACGUGGGGU")
-    check guess("FSYWLSCPIK") ?= newProtein("FSYWLSCPIK")
+    check guess(dnaT.chain) == newDna("ACGTGGGGT")
+    check guess(rnaT.chain) == newRna("ACGUGGGGU")
+    check guess("FSYWLSCPIK") == newProtein("FSYWLSCPIK")
 
-    check guess(proteinT.chain) ?= Sequence(chain: proteinT.chain, class: scSequence)
+    check guess(proteinT.chain) == Sequence(chain: proteinT.chain, class: scSequence)
 
   test "A slightly more complex guessing (dashes)":
     check guess("---------------------ACGTGGGGT").class == scDna
@@ -99,15 +103,15 @@ suite "Test Sequence operation":
   test "Operations over sequences guessed as DNA":
     let myDna = guess("ACGTGGGGT")
 
-    check myDna.complement ?= dnaT.complement
-    check myDna.transcript ?= newRna("ACGUGGGGU")
-    check myDna.translate ?= newProtein("TWG")
+    check myDna.complement == dnaT.complement
+    check myDna.transcript == newRna("ACGUGGGGU")
+    check myDna.translate == newProtein("TWG")
 
   test "Operations over sequences guessed as RNA":
     let myRna = guess("ACGUGGGGU")
 
-    check myRna.complement ?= newRna("UGCACCCCA")
-    check myRna.backTranscript ?= newDna("ACGTGGGGT")
+    check myRna.complement == newRna("UGCACCCCA")
+    check myRna.backTranscript == newDna("ACGTGGGGT")
 
   test "Sequence len":
     check dnaT.len == 9
@@ -205,19 +209,19 @@ suite "Test more complex sequence operations":
     let proteinStops: Sequence = newProtein("T*GX")
 
   test "DNA translation with gaps":
-    check dnaShifted.translate ?= proteinShifted
+    check dnaShifted.translate == proteinShifted
 
   test "DNA translation with stop codons":
-    check dnaStops.translate ?= proteinStops
+    check dnaStops.translate == proteinStops
 
   test "DNA translation with gaps in sync":
-    check dnaGapped.translate ?= proteinGapped
+    check dnaGapped.translate == proteinGapped
 
   test "DNA complement with gaps":
-    check dnaShifted.reverseComplement ?= dnaComplement
+    check dnaShifted.reverseComplement == dnaComplement
 
   test "RNA complement with gaps":
-    check rnaShifted.reverseComplement ?=
+    check rnaShifted.reverseComplement ==
       dnaShifted.transcript.reverseComplement
 
 suite "Test sequenceRecord operations":
@@ -277,14 +281,14 @@ suite "Test sequenceRecord operations":
     # From plain sequences (no gaps)
     let expectedA: Sequence = newDna("ACT")
     let expectedB: Sequence = newDna("GGA")
-    check sequence.codon(0) ?= expectedA
-    check sequence.codon(1) ?= expectedA
-    check sequence.codon(2) ?= expectedA
-    check sequence.codon(6) ?= expectedB
+    check sequence.codon(0) == expectedA
+    check sequence.codon(1) == expectedA
+    check sequence.codon(2) == expectedA
+    check sequence.codon(6) == expectedB
 
     let gapped: Sequence = newDna("A-CTGGTG-GA")
-    check gapped.codon(2) ?= expectedA
-    check gapped.codon(6) ?= expectedB
+    check gapped.codon(2) == expectedA
+    check gapped.codon(6) == expectedB
 
   test "Zipping two SequenceRecords":
     let sequence2: Sequence = newDna("GTGCATCAGT")

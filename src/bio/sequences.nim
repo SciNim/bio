@@ -47,8 +47,14 @@ type
     class*: SequenceClass
 
   SequenceRecord* = object of RootObj
-    ## An intermediate construct to hold a `Sequence<#Sequence>`_ while naming
-    ## it.
+    ## An intermediate construct to hold a `Sequence<#Sequence>`_ in `record`
+    ##  while adding other data:
+    ##
+    ## * `name` is an arbitrary identifier given to the `Sequence`.
+    ## * `Features<#Feature>`_ are the *FEATURES* fields of a GenBank record.
+    ## * `Meta<#MetaObj>`_ are other `metadata`. To get access to them you need
+    ##    to import the std module `tables<https://nim-lang.org/docs/tables.html>`_.
+    ##
     name*: string
     record*: Sequence
     features*: seq[Feature]

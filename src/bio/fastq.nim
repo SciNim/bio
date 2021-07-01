@@ -27,11 +27,6 @@
 #   @SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72
 #   ID IlluminaTag length
 #
-# The logic has to change:
-#  - Find the first @
-#  - Read Sequence until +
-#  - Read Quality until len(quality) == len(sequence)
-#  - Repeat (check that a new @ exists)
 #
 ## :Author: |author|
 ## :Version: |libversion|
@@ -116,6 +111,8 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
+  ## The quality line is stored at `meta<sequences.html#MetaObj>'_ property.
+  ##
   ## .. code-block::
   ##
   ##   import streams
@@ -133,12 +130,25 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ##   import zip/gzipfiles # Requires https://github.com/nim-lang/zip
   ##
   ##   import streams
-  ##   import bio/fasta
+  ##   import bio/fastq
   ##
   ##   var strm = newGzFileStream("path/to/file.fasq.gz")
   ##
   ##   for sequence in sequences(strm):
   ##     doAssert(sequence of SequenceRecord)
+  ##
+  ## Accessing the quality of the `SequenceRecord` is done through `tables`:
+  ##
+  ## .. code-block::
+  ##
+  ##   import streams
+  ##   import tables
+  ##   import bio/fastq
+  ##
+  ##   var strm = newFileStream("path/to/file.fasq")
+  ##
+  ##   for sequence in sequences(strm):
+  ##     echo sequence.meta.getOrDefault("quality")
   ##
   var name, sequence, quality, line: string
   var loadQuality: bool

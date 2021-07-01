@@ -65,7 +65,8 @@ proc bases(input: string, value: var string, start: int): int =
   scan(Digits + {'A' .. 'Z'})
 
 proc alnum(input: string, value: var string, start: int): int =
-  scan({'!' .. '~'} - {':'})  # Every ascii from 33
+  # As defined in http://maq.sourceforge.net/fastq.shtml
+  scan(Letters + Digits + {'_', '.', '-'})
 
 proc parseTag*(tag: string, tagName: TagName = tnNone): Table[string, MetaObj] =
   ## Parses the sequence identifier into its parts

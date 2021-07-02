@@ -170,7 +170,8 @@ Sequences
 Operations with files
 ---------------------
 
-* `fasta <fasta.html>`_ is a set of utilities to work with Fasta files.
+* `fasta <fasta.html>`_ is a set of utilities to work with FastA files.
+* `fastq <fastq.html>`_ is a set of utilities to work with FastQ files.
 
 NCBI Entrez
 -----------

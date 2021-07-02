@@ -66,9 +66,48 @@ proc alnum(input: string, value: var string, start: int): int =
   # As defined in http://maq.sourceforge.net/fastq.shtml
   scan(Letters + Digits + {'_', '.', '-'})
 
-proc getPes*(scores: seq[int8], platform: PlatformName = pnNone): seq[float] =
-  ## Calculates the Probability of Error (Pe) of each base from the scores
+func getPes*(scores: seq[int8], platform: PlatformName = pnNone): seq[float] =
+  ## Calculates the Probability of Error (Pe) of each base from the letter seq
   ##
+  ## Mainly for internal use, can be called with a sequence of Phred scores:
+  ##
+  runnableExamples:
+    import std / [math, sugar]
+    let scores = @[33'i8, 40, 50, 60, 80, 126]
+
+    let errors = collect(newSeqOfCap(scores.len)):
+      for s in getPes(scores):
+        round(s, 5)
+
+    doAssert errors == @[1.0, 0.19953, 0.01995, 0.002, 2e-05, 0.0]
+
+  runnableExamples:
+    # In 2004 Solexa introduced their own scoring system. Illumina older than
+    # 1.3 uses this format, specified with the tag 'pnIlluminaOld'.
+    #
+    # More about this wonderful event at https://doi.org/10.1093/nar/gkp1137
+    #
+    import std / [math, sugar]
+    let scores = @[59'i8, 64, 70, 80, 90, 126]
+
+    let errors = collect(newSeqOfCap(scores.len)):
+      for s in getPes(scores, pnIlluminaOld):
+        round(s, 5)
+
+    doAssert errors == @[0.75975, 0.5, 0.20076, 0.0245, 0.00251, 0.0]
+
+  runnableExamples:
+    # From Illumina 1.3 or newer, the minimum value for a Qscore is 64.
+    #
+    import std / [math, sugar]
+    let scores = @[64'i8, 80, 90, 126]
+
+    let errors = collect(newSeqOfCap(scores.len)):
+      for s in getPes(scores, pnIllumina):
+        round(s, 5)
+
+    doAssert errors == @[1.0, 0.02512, 0.00251, 0.0]
+
   let offset = case platform
     of pnIlluminaOld, pnIllumina: 64
     else: 33
@@ -118,7 +157,7 @@ func parseTag*(tag: string, platformName: PlatformName = pnNone): Table[string, 
   runnableExamples:
     import tables
 
-    let meta = parseTag("HWUSI-EAS100R:6:73:941:1973#0/1", tnIlluminaOld)
+    let meta = parseTag("HWUSI-EAS100R:6:73:941:1973#0/1", pnIlluminaOld)
 
     doAssert meta["instrumentId"].metaString == "HWUSI-EAS100R"
     doAssert meta["pairing"].metaInt == 1
@@ -127,7 +166,7 @@ func parseTag*(tag: string, platformName: PlatformName = pnNone): Table[string, 
     import tables
 
     let meta = parseTag("EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG",
-                        tnIllumina)
+                        pnIllumina)
 
     doAssert meta["barcode"].metaString == "ATCACG"
 

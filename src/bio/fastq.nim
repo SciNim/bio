@@ -15,25 +15,28 @@
 #   A Phred score of a base is: Qphred = −10*log(e) , e is the probability of
 #     the base being wrong.
 #
+#   Paper on qualities: https://doi.org/10.1093/nar/gkp1137
+#
 # Illumina
 #   @HWUSI-EAS100R:6:73:941:1973#0/1
-#    Instrument:Flowcell lane:tile:X:Y#IdxMultiplex/paired
+#    Instrument:FlowcellLane:tile:X:Y#IdxMultiplex/paired
 #
 #   @EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG
-#    Instrument:RunId:FlowcellId:Flowcell lane:Tile:X:Y Pair:Filtered:Control:IdxSequence
+#    Instrument:RunId:FlowcellId:FlowcellLane:Tile:X:Y Pair:Filtered:Control:IdxSequence
 #
 # NCBI
 #
 #   @SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72
 #   ID IlluminaTag length
 #
-#
 ## :Author: |author|
 ## :Version: |libversion|
+import math
 import sets
 import streams
 import strscans
 import strutils
+import sugar
 import tables
 
 import io
@@ -42,11 +45,11 @@ export sequences
 
 
 type
-  TagName* = enum
-    tnNone,
-    tnIllumina,
-    tnIlluminaOld,
-    tnNcbiSra
+  PlatformName* = enum
+    pnNone,
+    pnIllumina,
+    pnIlluminaOld,
+    pnNcbiSra
 
 template scan(charSet: typed) =
   while result + start < input.len and input[result + start] in charSet:
@@ -63,14 +66,75 @@ proc alnum(input: string, value: var string, start: int): int =
   # As defined in http://maq.sourceforge.net/fastq.shtml
   scan(Letters + Digits + {'_', '.', '-'})
 
-proc parseTag*(tag: string, tagName: TagName = tnNone): Table[string, MetaObj] =
-  ## Parses the sequence identifier into its parts
+proc getPes*(scores: seq[int8], platform: PlatformName = pnNone): seq[float] =
+  ## Calculates the Probability of Error (Pe) of each base from the scores
   ##
-  ## TODO example here
+  let offset = case platform
+    of pnIlluminaOld, pnIllumina: 64
+    else: 33
+
+  collect(newSeqOfCap(len(scores))):
+    for i in scores:
+      case platform
+      of pnIlluminaOld:
+        1 / (pow(10, (i - offset).float / 10.0) + 1)
+      else:
+        pow(10, -(i - offset).float / 10.0)
+
+func parseQuality*(quality: string): seq[int8] =
+  ## Parses a quality string into a seq of signed integers of size 8.
+  ##
+  ## Doesn't take into account the differences between platforms. Refer to <TBD>
+  ##
+  collect(newSeqOfCap(len(quality))):
+    for c in quality:
+      int8(ord(c))
+
+func parseTag*(tag: string, platformName: PlatformName = pnNone): Table[string, MetaObj] =
+  ## Parses the tag identifier into its parts.
+  ##
+  ## There are some docs explaining how this identifier work, and none of them
+  ## seems to agree. This procedure attempts the following:
+  ##
+  ## - For Illumina > 1.4
+  ##
+  ##   `@EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG`
+  ##   `Instrument:Run:FlowCell:Lane:Tile:TileX:TileY Number:Filter:Control:Barcode`
+  ##
+  ## - For Illumina < 1.4
+  ##
+  ##   `@HWUSI-EAS100R:6:73:941:1973#0/1`
+  ##   `Instrument:FlowCell:Tile:TileX:TileY#Index/Pairing`
+  ##
+  ## - For Ncbi Sra
+  ##
+  ##   `@SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72`
+  ##   `Id(discarded) Instrument:FlowCell:Tile:TileX:TileY (discarded)`
+  ##
+  ## If your tag doesn't match any of the above, you get an empty
+  ## `Table<https://nim-lang.org/docs/tables.html>`_. This is the default if no
+  ## `tagName<#tagName>`_ is specified.
+  ##
+  runnableExamples:
+    import tables
+
+    let meta = parseTag("HWUSI-EAS100R:6:73:941:1973#0/1", tnIlluminaOld)
+
+    doAssert meta["instrumentId"].metaString == "HWUSI-EAS100R"
+    doAssert meta["pairing"].metaInt == 1
+
+  runnableExamples:
+    import tables
+
+    let meta = parseTag("EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG",
+                        tnIllumina)
+
+    doAssert meta["barcode"].metaString == "ATCACG"
+
   var instrumentId, runId, flowCellId, index, filtered, empty: string
   var flowCellLane, tileNumber, xTile, yTile, pairing, readNumber: int
-  case tagName
-  of tnIllumina:
+  case platformName
+  of pnIllumina:
     if scanf(tag, "${alnum}:${alnum}:${alnum}:$i:$i:$i:$i $i:${yn}:$i:${alnum}",
              instrumentId, runId, flowCellId, flowCellLane, tileNumber, xTile,
              yTile, readNumber, filtered, pairing, index):
@@ -86,7 +150,7 @@ proc parseTag*(tag: string, tagName: TagName = tnNone): Table[string, MetaObj] =
       result["isFiltered"] = MetaObj(kind: mkString, metaString: filtered)
       result["control"] = MetaObj(kind: mkInt, metaInt: pairing)
       result["barcode"] = MetaObj(kind: mkString, metaString: index)
-  of tnIlluminaOld:
+  of pnIlluminaOld:
     if scanf(tag, "${alnum}:$i:$i:$i:$i#${bases}/$i", instrumentId, flowCellLane,
              tileNumber, xTile, yTile, index, pairing):
       result["instrumentId"] = MetaObj(kind: mkString, metaString: instrumentId)
@@ -96,7 +160,7 @@ proc parseTag*(tag: string, tagName: TagName = tnNone): Table[string, MetaObj] =
       result["yTile"] = MetaObj(kind: mkInt, metaInt: yTile)
       result["index"] = MetaObj(kind: mkString, metaString: index)
       result["pairing"] = MetaObj(kind: mkInt, metaInt: pairing)
-  of tnNcbiSra:
+  of pnNcbiSra:
     if scanf(tag, "${alnum} ${alnum}:$i:$i:$i:$i", empty, instrumentId, flowCellLane,
              tileNumber, xTile, yTile, index, pairing):
       result["instrumentId"] = MetaObj(kind: mkString, metaString: instrumentId)
@@ -111,7 +175,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
-  ## The quality line is stored at `meta<sequences.html#MetaObj>'_ property.
+  ## The quality line is stored at `meta<sequences.html#MetaObj>`_ property.
   ##
   ## .. code-block::
   ##

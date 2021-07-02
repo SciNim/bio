@@ -129,7 +129,7 @@ suite "Operations with FASTQ files":
       "isFiltered": MetaObj(kind: mkString, metaString: "Y"),
       "control": MetaObj(kind: mkInt, metaInt: 18),
       "barcode": MetaObj(kind: mkString, metaString: "ATCACG")}.toTable
-    check parseTag(newTag, tnIllumina) == expected
+    check parseTag(newTag, pnIllumina) == expected
 
     # Assert also that this is the default mode
     check parseTag(newTag) == emptyTable
@@ -149,7 +149,7 @@ suite "Operations with FASTQ files":
       "isFiltered": MetaObj(kind: mkString, metaString: "Y"),
       "control": MetaObj(kind: mkInt, metaInt: 18),
       "barcode": MetaObj(kind: mkString, metaString: "1")}.toTable
-    check parseTag(newTag, tnIllumina) == expected
+    check parseTag(newTag, pnIllumina) == expected
 
   test "Load the Illumina / Solexa old tags into meta data":
     let oldTag = "HWUSI-EAS100R:6:73:941:1973#ATCACG/1"
@@ -163,7 +163,7 @@ suite "Operations with FASTQ files":
       "index": MetaObj(kind: mkString, metaString: "ATCACG"),
       "pairing": MetaObj(kind: mkInt, metaInt: 1)}.toTable
 
-    check parseTag(oldTag, tnIlluminaOld) == expected
+    check parseTag(oldTag, pnIlluminaOld) == expected
 
   test "Load the NCBI SRA tags into meta data":
     let sraTag = "SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36"
@@ -175,7 +175,38 @@ suite "Operations with FASTQ files":
       "xTile": MetaObj(kind: mkInt, metaInt: 817),
       "yTile": MetaObj(kind: mkInt, metaInt: 345)}.toTable
 
-    check parseTag(sraTag, tnNcbiSra) == expected
+    check parseTag(sraTag, pnNcbiSra) == expected
+
+  test "Quality code to int8 values":
+    let quality = "!''*((((***+))%%%++)(%%%%~"
+
+    let qualities = parseQuality(quality)
+    check qualities[0] == 33'i8
+    check qualities[^1] == 126'i8
+
+  test "Get the scores from a quality string":
+    let quality = "!&~"
+
+    let pes = getPes(parseQuality(quality))  # The default is plain Phred
+    check pes[0] == 1 # The lowest quality, !
+    check pes[1] > 0.31 and pes[1] < 0.32 # Very low quality of Phred 5, &
+    check pes[^1] < 1e-9  # The highest quality, ~
+
+  test "Get the scores from a quality string, Solexa/Old Illumina":
+    let quality = ";@~"
+
+    let pes = getPes(parseQuality(quality), pnIlluminaOld)
+    check pes[0] > 0.75 and pes[0] < 0.76  # The lowest quality, ;
+    check pes[1] == 0.5 # Very low quality of Phred 5, @
+    check pes[^1] < 1e-6  # The highest quality, ~
+
+  test "Get the scores from a quality string, New Illumina":
+    let quality = "@E~"
+
+    let pes = getPes(parseQuality(quality), pnIllumina)
+    check pes[0] == 1 # The lowest quality, @
+    check pes[1] > 0.31 and pes[1] < 0.32 # Very low quality of Phred 5, E
+    check pes[^1] < 1e-6  # The highest quality, ~
 
   test "Operations on quality code":
     check false

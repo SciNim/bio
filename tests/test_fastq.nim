@@ -293,3 +293,52 @@ suite "File set test":
         expect AssertionDefect:
           for s in sequences(f):
             discard
+
+  test "Expected to be correct in some conditions":
+    let srcDir = currentSourcePath().parentDir / "test_files" / "fastq" /
+      "right"
+
+    test "Full range Sanger read as Sanger, not Illumina":
+      let f = srcDir / "sanger_full_range_original_sanger.fastq"
+
+      # Ensure the file can be read under Sanger conditions
+      for s in sequences(f, pnNone):
+        discard
+
+      expect AssertionDefect:
+        for s in sequences(f, pnIlluminaOld):
+          discard
+
+      expect AssertionDefect:
+        for s in sequences(f, pnIllumina):
+          discard
+
+    test "Full range IlluminaOld read as Sanger or IlluminaOld, not Illumina":
+      let f = srcDir / "solexa_full_range_original_solexa.fastq"
+
+      # Ensure the file can be read under Sanger conditions
+      for s in sequences(f, pnNone):
+        discard
+
+      # Ensure the file can be read under IlluminaOld conditions
+      for s in sequences(f, pnIlluminaOld):
+        discard
+
+      expect AssertionDefect:
+        for s in sequences(f, pnIllumina):
+          discard
+
+    test "Full range Illumina read as Sanger, IlluminaOld and Illumina":
+      let f = srcDir / "illumina_full_range_original_illumina.fastq"
+
+      # Ensure the file can be read under Sanger conditions
+      for s in sequences(f, pnNone):
+        discard
+
+      # Ensure the file can be read under IlluminaOld conditions
+      for s in sequences(f, pnIlluminaOld):
+        discard
+
+      # Ensure the file can be read under IlluminaNew conditions
+      for s in sequences(f, pnIllumina):
+        discard

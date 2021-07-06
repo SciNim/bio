@@ -361,7 +361,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
 
 iterator sequences*(fName: string, kind: FileType=ftFastq): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
-  ## fileame, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
+  ## filebame, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
   ## .. code-block::
   ##
@@ -372,5 +372,28 @@ iterator sequences*(fName: string, kind: FileType=ftFastq): SequenceRecord {.inl
   ##
   let strm = newFileStream(fName)
 
-  for sr in strm.sequences():
+  for sr in strm.sequences(ftFastq):
+    yield sr
+
+iterator sequences*(fName: string, platform: PlatformName): SequenceRecord {.inline.} =
+  ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
+  ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_, *but*
+  ## enforces the quality line to comply with the Platform requested.
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio/fastq
+  ##
+  ##   for sequence in sequences("path/to/file.fasq", pnIlluminaOld):
+  ##     doAssert(sequence of SequenceRecord)
+  ##
+  let strm = newFileStream(fName)
+  for sr in strm.sequences(ftFastq):
+    case platform
+    of pnIlluminaOld:
+      assert allIt(sr.meta["quality"].metaString, ord(it) >= 59)
+    of pnIllumina:
+      assert allIt(sr.meta["quality"].metaString, ord(it) >= 64)
+    else:
+      discard
     yield sr

@@ -1,4 +1,5 @@
 import os
+import posix_utils
 import streams
 import strformat
 import strtabs
@@ -134,6 +135,88 @@ suite "Operations with FASTQ files":
 
     # Assert also that this is the default mode
     check parseTag(newTag) == emptyTable
+
+  test "Save a sequence of SequenceRecord to a file":
+    var tmpOutput: (string, File) = mkstemp("tests/file_")
+    defer:
+      tmpOutput[1].close()
+      removeFile(tmpOutput[0])
+
+    var strm = newFileStream(tmpOutput[0], fmWrite)
+
+    var records: seq[SequenceRecord]
+    for s in sequences(fastqF2):
+      records.add s
+
+    records.dumpTo(strm)
+
+    let dataSaved = tmpOutput[0].readLines(5)
+
+    check dataSaved[0] == "@SEQ_ID1"
+    check dataSaved[1][.. 20] == "GATTTGGGGTTCAAAGCAGTA"
+    check dataSaved[2] == "+"
+    check dataSaved[3][.. 20] == "+''*((((***+))%%%++)("
+
+  test "Save a single SequenceRecord to a file":
+    var tmpOutput: (string, File) = mkstemp("tests/file_")
+    defer:
+      tmpOutput[1].close()
+      removeFile(tmpOutput[0])
+
+    var strm = newFileStream(tmpOutput[0], fmWrite)
+
+    var records: seq[SequenceRecord]
+    for s in sequences(fastqF2):
+      records.add s
+      break
+
+    records[0].dumpTo(strm)
+
+    let dataSaved = tmpOutput[0].readLines(4)
+
+    check dataSaved[0] == "@SEQ_ID1"
+    check dataSaved[1][.. 20] == "GATTTGGGGTTCAAAGCAGTA"
+    check dataSaved[2] == "+"
+    check dataSaved[3][.. 20] == "+''*((((***+))%%%++)("
+
+  test "Save a sequence of SequenceRecord to a file (using name)":
+    var tmpOutput: (string, File) = mkstemp("tests/file_")
+    defer:
+      tmpOutput[1].close()
+      removeFile(tmpOutput[0])
+
+    var records: seq[SequenceRecord]
+    for s in sequences(fastqF2):
+      records.add s
+
+    records.dumpTo(tmpOutput[0])
+
+    let dataSaved = tmpOutput[0].readLines(5)
+
+    check dataSaved[0] == "@SEQ_ID1"
+    check dataSaved[1][.. 20] == "GATTTGGGGTTCAAAGCAGTA"
+    check dataSaved[2] == "+"
+    check dataSaved[3][.. 20] == "+''*((((***+))%%%++)("
+
+  test "Save a single SequenceRecord to a file (using name)":
+    var tmpOutput: (string, File) = mkstemp("tests/file_")
+    defer:
+      tmpOutput[1].close()
+      removeFile(tmpOutput[0])
+
+    var records: seq[SequenceRecord]
+    for s in sequences(fastqF2):
+      records.add s
+      break
+
+    records[0].dumpTo(tmpOutput[0])
+
+    let dataSaved = tmpOutput[0].readLines(4)
+
+    check dataSaved[0] == "@SEQ_ID1"
+    check dataSaved[1][.. 20] == "GATTTGGGGTTCAAAGCAGTA"
+    check dataSaved[2] == "+"
+    check dataSaved[3][.. 20] == "+''*((((***+))%%%++)("
 
   test "Empty barcode":
     let newTag = "EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:1"

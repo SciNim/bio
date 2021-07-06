@@ -287,9 +287,6 @@ proc dumpTo*(record: SequenceRecord, fHandler: File, kind: FileType=ftFasta) =
   ## wrapping the sequence by 60 positions.
   ## The name of the SequenceRecord remains untouched.
   ##
-  ## TBD: `kind` is a string as in "fasta", to support different formats.
-  ## Right now only FASTA files are supported.
-  ##
   ## To write a FASTA file `myOutput.fasta` with the contents:
   ##
   ## .. code-block::

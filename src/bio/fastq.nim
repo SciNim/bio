@@ -361,6 +361,119 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
       else:  # Is sequence
         sequence.add line
 
+proc dumpTo*(record: SequenceRecord, strm: Stream, kind: FileType=ftFastq) =
+  ## Write a `SequenceRecord<sequences.html#SequenceRecord>`_ to `fHandler`,
+  ## wrapping the sequence by 60 positions.
+  ##
+  ## The identifier used to save is the `name` of the SequenceRecord, and not
+  ## constructed from the `Metadata<sequences.html#MetaObj>`.
+  ##
+  ## The quality line comes from the `Metadata` value for `quality`.
+  ##
+  ## .. code-block::
+  ##   `import bio/fastq`
+  ##
+  ##   let mySeq = newDna("TGCACCCCA")
+  ##   var myRec = SequenceRecord(name: "My DNA Read", record: mySeq)
+  ##   let quality = MetaObj(kind: mkString, metaString: "ABCDEFGHI")
+  ##   myRec.meta["quality"] = quality
+  ##
+  ##   block:
+  ##     let fastqOut = newFileStream("somefile.fastq", fmWrite)
+  ##     defer: fastqOut.close
+  ##     myRec.dumpTo(fastqOut)
+  ##
+
+  const wrapSize: int = 60
+
+  strm.write("@", record.name)
+  for i, base in record.record.chain.pairs:
+    if i mod wrapSize == 0:
+      strm.write('\n')
+    strm.write(base)
+  strm.write('\n')
+  strm.write("+")
+  for i, qVal in record.meta.getOrDefault("quality").metaString.pairs:
+    if i mod wrapSize == 0:
+      strm.write('\n')
+    strm.write(qVal)
+  strm.write('\n')
+  strm.flush()
+
+proc dumpTo*(records: seq[SequenceRecord], strm: Stream, kind: FileType=ftFastq) =
+  ## A shortcut to avoid the explicit cycle to write a `seq` of
+  ## `SequenceRecords<sequences.html#SequenceRecord>`_
+  ##
+  ## .. code-block::
+  ##   `import bio/fastq`
+  ##
+  ##   let mySeq = newDna("TGCACCCCA")
+  ##   var myRecA = SequenceRecord(name: "My DNA Read1", record: mySeq)
+  ##   var myRecB = SequenceRecord(name: "My DNA Read2", record: mySeq)
+  ##   let quality = MetaObj(kind: mkString, metaString: "ABCDEFGHI")
+  ##   myRecA.meta["quality"] = quality
+  ##   myRecB.meta["quality"] = quality
+  ##
+  ##   let myRecs = @[myRecA, myRecB]
+  ##
+  ##   block:
+  ##     let fastqOut = newFileStream("somefile.fastq", fmWrite)
+  ##     defer: fastqOut.close
+  ##     myRecs.dumpTo(fastqOut)
+  ##
+  for sr in records:
+    sr.dumpTo(strm, kind)
+
+proc dumpTo*(record: SequenceRecord, fName: string, kind: FileType=ftFasta) =
+  ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,Stream,string>`_
+  ## but you only need to point out the name of the file.
+  ##
+  ## If the file exists, it will be silently overwritten.
+  ##
+  ## .. code-block::
+  ##   `import bio/fastq`
+  ##
+  ##   let mySeq = newDna("TGCACCCCA")
+  ##   var myRec = SequenceRecord(name: "My DNA Read", record: mySeq)
+  ##   let quality = MetaObj(kind: mkString, metaString: "ABCDEFGHI")
+  ##   myRec.meta["quality"] = quality
+  ##
+  ##   block:
+  ##     let fastqOut = newFileStream("somefile.fastq", fmWrite)
+  ##     defer: fastqOut.close
+  ##     myRec.dumpTo("somefile.fastq")
+  ##
+  let strm: Stream = newFileStream(fName, fmWrite)
+  defer: strm.close()
+
+  record.dumpTo(strm, kind)
+
+proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: FileType=ftFasta) =
+  ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,Stream,string>`_
+  ## but you only need to point out the name of the file.
+  ##
+  ## If the file exists, it will be silently overwritten.
+  ##
+  ## .. code-block::
+  ##   import bio / fastq
+  ##
+  ##   let mySeq = newDna("TGCACCCCA")
+  ##   var myRecA = SequenceRecord(name: "My DNA Read1", record: mySeq)
+  ##   var myRecB = SequenceRecord(name: "My DNA Read2", record: mySeq)
+  ##   let quality = MetaObj(kind: mkString, metaString: "ABCDEFGHI")
+  ##   myRecA.meta["quality"] = quality
+  ##   myRecB.meta["quality"] = quality
+  ##
+  ##   let myRecs = @[myRecA, myRecB]
+  ##
+  ##   myRecs.dumpTo("somefile.fastq")
+  ##
+  let strm: Stream = newFileStream(fName, fmWrite)
+  defer: strm.close()
+
+  for sr in records:
+    sr.dumpTo(strm, kind)
+
 iterator sequences*(fName: string, kind: FileType=ftFastq): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.

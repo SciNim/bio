@@ -187,7 +187,7 @@ suite "Operations with FASTQ files":
   test "Get the scores from a quality string":
     let quality = "!&~"
 
-    let pes = getPes(parseQuality(quality))  # The default is plain Phred
+    let pes = getErrors(parseQuality(quality))  # The default is plain Phred
     check pes[0] == 1 # The lowest quality, !
     check pes[1] > 0.31 and pes[1] < 0.32 # Very low quality of Phred 5, &
     check pes[^1] < 1e-9  # The highest quality, ~
@@ -195,7 +195,7 @@ suite "Operations with FASTQ files":
   test "Get the scores from a quality string, Solexa/Old Illumina":
     let quality = ";@~"
 
-    let pes = getPes(parseQuality(quality), pnIlluminaOld)
+    let pes = getErrors(parseQuality(quality), pnIlluminaOld)
     check pes[0] > 0.75 and pes[0] < 0.76  # The lowest quality, ;
     check pes[1] == 0.5 # Very low quality of Phred 5, @
     check pes[^1] < 1e-6  # The highest quality, ~
@@ -203,10 +203,18 @@ suite "Operations with FASTQ files":
   test "Get the scores from a quality string, New Illumina":
     let quality = "@E~"
 
-    let pes = getPes(parseQuality(quality), pnIllumina)
+    let pes = getErrors(parseQuality(quality), pnIllumina)
     check pes[0] == 1 # The lowest quality, @
     check pes[1] > 0.31 and pes[1] < 0.32 # Very low quality of Phred 5, E
     check pes[^1] < 1e-6  # The highest quality, ~
 
-  test "Operations on quality code":
-    check false
+  test "Don't allow errors greater than 1.0":
+    check getErrors(@[0'i8]) == @[1.0]
+    check getErrors(@[0'i8], pnIllumina) == @[1.0]
+
+  test "Get the Qstring from a seq of errors":
+    let values = @[1e-14, 0.5, 0.75, 1]
+
+    check getQstring(values) == "~$\"!" # The default is plain Phred
+    check getQstring(values, pnIlluminaOld) == "~@;;"
+    check getQstring(values, pnIllumina) == "~CA@"

@@ -66,44 +66,65 @@ proc alnum(input: string, value: var string, start: int): int =
   # As defined in http://maq.sourceforge.net/fastq.shtml
   scan(Letters + Digits + {'_', '.', '-'})
 
-func getPes*(scores: seq[int8], platform: PlatformName = pnNone): seq[float] =
-  ## Calculates the Probability of Error (Pe) of each base from the letter seq
+func getErrors*(scores: seq[int8], platform: PlatformName = pnNone): seq[float] =
+  ## Calculates the Probability of Error (Pe) of each base from the sequence of
+  ## Phred scores encoded as Ascii `chars`_ (*i.e. not shifted*).
   ##
-  ## Mainly for internal use, can be called with a sequence of Phred scores:
+  ## The default score encoding is a char between 33 and 126 (printable chars),
+  ## with 33 the worst base quality (the base is as good as choosen randomly)
+  ## and 126 the best. This encoding is referred to as `Sanger`.
+  ##
+  ## In 2004 Solexa introduced their own scoring system. They used chars
+  ## between 59 and 126 and a different formula. Illumina older than 1.3 uses
+  ## this format, specified here with the tag `pnIlluminaOld`.
+  ##
+  ## From Illumina 1.3 to 1.7, the minimum value for a Qscore is 64, and the
+  ## formula to calculate the Phred changed again. Use `pnIllumina` for those
+  ## sequences.
+  ##
+  ## Both scales are nearly equivalent for Phred scores above 10 (probability
+  ## of a base being wrong < 0.1), as shown here:
+  ##
+  ## .. image:: PhredVsError.svg
+  ##
+  ## From Illumina 1.8, they returned to the default scores. Use `pnNone` or
+  ## nothing for those sequences.
+  ##
+  ## To recap, a `D` in a quality string can mean: a high quality base (Q35) in
+  ## the default Sanger scale, a low quality (Q4) in Illumina pre-1.8, and a
+  ## again a high quality (Q35) in Illumina 1.8 or newer.
+  ##
+  ## More about this wonderful events at https://doi.org/10.1093/nar/gkp1137
+  ## and https://en.wikipedia.org/wiki/FASTQ_format#Variations
+  ##
+  ## .. _chars: https://nim-lang.org/docs/system.html#ord%2CT
   ##
   runnableExamples:
     import std / [math, sugar]
     let scores = @[33'i8, 40, 50, 60, 80, 126]
 
     let errors = collect(newSeqOfCap(scores.len)):
-      for s in getPes(scores):
+      for s in getErrors(scores):
         round(s, 5)
 
     doAssert errors == @[1.0, 0.19953, 0.01995, 0.002, 2e-05, 0.0]
 
   runnableExamples:
-    # In 2004 Solexa introduced their own scoring system. Illumina older than
-    # 1.3 uses this format, specified with the tag 'pnIlluminaOld'.
-    #
-    # More about this wonderful event at https://doi.org/10.1093/nar/gkp1137
-    #
     import std / [math, sugar]
     let scores = @[59'i8, 64, 70, 80, 90, 126]
 
     let errors = collect(newSeqOfCap(scores.len)):
-      for s in getPes(scores, pnIlluminaOld):
+      for s in getErrors(scores, pnIlluminaOld):
         round(s, 5)
 
     doAssert errors == @[0.75975, 0.5, 0.20076, 0.0245, 0.00251, 0.0]
 
   runnableExamples:
-    # From Illumina 1.3 or newer, the minimum value for a Qscore is 64.
-    #
     import std / [math, sugar]
     let scores = @[64'i8, 80, 90, 126]
 
     let errors = collect(newSeqOfCap(scores.len)):
-      for s in getPes(scores, pnIllumina):
+      for s in getErrors(scores, pnIllumina):
         round(s, 5)
 
     doAssert errors == @[1.0, 0.02512, 0.00251, 0.0]
@@ -118,13 +139,53 @@ func getPes*(scores: seq[int8], platform: PlatformName = pnNone): seq[float] =
       of pnIlluminaOld:
         1 / (pow(10, (i - offset).float / 10.0) + 1)
       else:
-        pow(10, -(i - offset).float / 10.0)
+        clamp(pow(10, -(i - offset).float / 10.0), 0.0, 1.0)
+
+func getQstring*(values: seq[float], platform: PlatformName = pnNone): string =
+  ## Returns the Qstring for a given sequence of errors expressed as floats
+  ## between 0.0 and 1.0
+  ##
+  ## Refer to `getErrors`_ for more info about differences between platforms.
+  ##
+  ## .. _getErrors: #getErrors,seq[int8],PlatformName
+  ##
+  runnableExamples:
+    let errors = @[1e-14, 0.5, 0.75, 1]
+
+    doAssert getQstring(errors) == "~$\"!"
+    doAssert getQstring(errors, pnIlluminaOld) == "~@;;"
+    doAssert getQstring(errors, pnIllumina) == "~CA@"
+
+  let offset = case platform
+    of pnIlluminaOld, pnIllumina: 64
+    else: 33
+
+  let s = collect(newSeqOfCap(values.len)):
+    for value in values:
+      case platform
+      of pnIlluminaOld:
+        char(clamp(int(round(-10 * log10(value / (1 - value)))),
+                   -5, 62) + offset)
+      of pnIllumina:
+        char(clamp(int(round(-10 * log10(value))), 0, 62) + offset)
+      else:
+        char(clamp(int(round(-10 * log10(value))), 0, 93) + offset)
+
+  join(s)
 
 func parseQuality*(quality: string): seq[int8] =
   ## Parses a quality string into a seq of signed integers of size 8.
   ##
-  ## Doesn't take into account the differences between platforms. Refer to <TBD>
+  ## Doesn't take into account the differences between platforms. Refer to
+  ## `getErrors`_ for more info.
   ##
+  ## .. _getErrors: #getErrors,seq[int8],PlatformName
+  ##
+  runnableExamples:
+    let qualityString = "!'A~"
+
+    doAssert parseQuality(qualityString) == @[33'i8, 39, 65, 126]
+
   collect(newSeqOfCap(len(quality))):
     for c in quality:
       int8(ord(c))

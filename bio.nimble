@@ -22,10 +22,12 @@ task test, "Full test suite":
 const docDir = "public"
 proc docSetup =
   mkdir(docDir)
-  if fileExists("media/logo.svg"):
-    cpFile("media/logo.svg", &"{docDir}/logo.svg")
-  if fileExists("src/media/logo.svg"):
-    cpFile("src/media/logo.svg", &"{docDir}/logo.svg")
+  let media = ["logo.svg", "PhredVsError.svg"]
+  for img in media:
+    if fileExists(&"media/{img}"):
+      cpFile(&"media/{img}", &"{docDir}/{img}")
+    if fileExists(&"src/media/{img}"):
+      cpFile(&"src/media/{img}", &"{docDir}/{img}")
 
 proc preDocs =
   exec("rm *idx -f")

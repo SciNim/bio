@@ -218,3 +218,18 @@ suite "Operations with FASTQ files":
     check getQstring(values) == "~$\"!" # The default is plain Phred
     check getQstring(values, pnIlluminaOld) == "~@;;"
     check getQstring(values, pnIllumina) == "~CA@"
+
+  test "Translate a Qstring from Default mode to Illumina Old, and back":
+    let defaultString = "!\"#$%&'()~"
+    let oldIlluminaString = ";;>@BCEFG~"
+
+    check qString(defaultString, pnNone, pnIlluminaOld) == oldIlluminaString
+    check qString(oldIlluminaString, pnIlluminaOld, pnNone) == "\"\"#$%&'()_"
+
+  test "Translate a Qstring from Default mode to Illumina New, and back":
+    let defaultString = "!\"#$%&'()~"
+    let newIlluminaString = "@ABCDEFGH~"
+
+    check qString(defaultString, pnNone, pnIllumina) == newIlluminaString
+    check qString(newIlluminaString, pnIllumina, pnNone) == "!\"#$%&'()_"
+

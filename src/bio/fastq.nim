@@ -190,6 +190,22 @@ func parseQuality*(quality: string): seq[int8] =
     for c in quality:
       int8(ord(c))
 
+func qString*(quality: string, src, tgt: PlatformName): string =
+  ## Transforms a quality string from the `src` format to the `tgt` format.
+  ##
+  ## Due to scale constrains, the transformation might cause loss of
+  ## information.
+  ##
+  runnableExamples:
+    let sanger = "ABCDEFGH"
+
+    # Shifts about 30 chars in the Ascii table
+    doAssert qString(sanger, pnNone, pnIllumina) == "`abcdefg"
+
+  let rawQuality = parseQuality(quality)
+
+  getQString(getErrors(rawQuality, src), tgt)
+
 func parseTag*(tag: string, platformName: PlatformName = pnNone): Table[string, MetaObj] =
   ## Parses the tag identifier into its parts.
   ##

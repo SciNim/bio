@@ -4,13 +4,13 @@
 ## A FASTQ file `normally`_ uses four lines per sequence, but multilines for
 ## sequence and quality "lines" are allowed:
 ##
-## * Line 1 begins with a '@' character and is followed by a sequence identifier
+## * Line 1 begins with a `@` character and is followed by a sequence identifier
 ##   and an optional description (like a FASTA title line).
 ## * Line 2 is the raw sequence of letters.
-## * Line 3 begins with a '+' character and is *optionally* followed by the same
+## * Line 3 begins with a `+` character and is *optionally* followed by the same
 ##   sequence identifier (and any description) again. Some parsers enforce that
-##   the optional text here match the contents of line 1. This one ignores the
-##   line.
+##   the optional text here match the contents of line 1, but this one ignores
+##   the line entirely.
 ## * Line 4 encodes the quality values for the sequence in Line 2, and must
 ##   contain the same number of symbols as letters in the sequence.
 ##
@@ -193,29 +193,29 @@ func qString*(quality: string, src, tgt: PlatformName): string =
   getQString(getErrors(rawQuality, src), tgt)
 
 func parseTag*(tag: string, platformName: PlatformName = pnNone): Table[string, MetaObj] =
-  ## Parses the tag identifier into its parts.
+  ## Parses the identifier into its parts.
   ##
   ## There are some docs explaining how this identifier work, and none of them
   ## seems to agree. This procedure attempts the following:
-  ##
-  ## - For Illumina > 1.4
-  ##
-  ##   `@EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG`
-  ##   `Instrument:Run:FlowCell:Lane:Tile:TileX:TileY Number:Filter:Control:Barcode`
   ##
   ## - For Illumina < 1.4
   ##
   ##   `@HWUSI-EAS100R:6:73:941:1973#0/1`
   ##   `Instrument:FlowCell:Tile:TileX:TileY#Index/Pairing`
   ##
+  ## - For Illumina > 1.4
+  ##
+  ##   `@EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG`
+  ##   `Instrument:Run:FlowCell:Lane:Tile:TileX:TileY Number:Filter:Control:Barcode`
+  ##
   ## - For Ncbi Sra
   ##
   ##   `@SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72`
   ##   `Id(discarded) Instrument:FlowCell:Tile:TileX:TileY (discarded)`
   ##
-  ## If your tag doesn't match any of the above, you get an empty
+  ## If the identifier doesn't match any of the above, you get an empty
   ## `Table<https://nim-lang.org/docs/tables.html>`_. This is the default if no
-  ## `tagName<#tagName>`_ is specified.
+  ## `platformName<#platformName>`_ is specified.
   ##
   runnableExamples:
     import tables
@@ -280,7 +280,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ## The quality line is stored at `meta<sequences.html#MetaObj>`_ property.
   ##
   ##  Note: when compiled with `-d:danger`, some checks implemented as
-  ##  assertions are not run.
+  ##  assertions do not run.
   ##
   ## .. code-block::
   ##
@@ -306,7 +306,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ##   for sequence in sequences(strm):
   ##     doAssert(sequence of SequenceRecord)
   ##
-  ## Accessing the quality of the `SequenceRecord` is done through `tables`:
+  ## Accessing the quality of the `SequenceRecord` is done through `tables`_:
   ##
   ## .. code-block::
   ##
@@ -318,6 +318,8 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ##
   ##   for sequence in sequences(strm):
   ##     echo sequence.meta.getOrDefault("quality")
+  ##
+  ## .. _tables: https://nim-lang.org/docs/tables.html
   ##
   var name, sequence, quality, line: string
   var loadQuality: bool
@@ -361,7 +363,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
 
 iterator sequences*(fName: string, kind: FileType=ftFastq): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
-  ## filebame, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
+  ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
   ## .. code-block::
   ##
@@ -375,10 +377,34 @@ iterator sequences*(fName: string, kind: FileType=ftFastq): SequenceRecord {.inl
   for sr in strm.sequences(ftFastq):
     yield sr
 
+iterator sequences*(strm: Stream, platform: PlatformName): SequenceRecord {.inline.} =
+  ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
+  ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
+  ##
+  ## .. code-block::
+  ##
+  ##   import streams
+  ##   import bio/fastq
+  ##
+  ##   var strm = newFileStream("path/to/file.fasq")
+  ##
+  ##   for sequence in sequences(strm, pnIllumina):
+  ##     doAssert(sequence of SequenceRecord)
+  ##
+  for sr in strm.sequences(ftFastq):
+    case platform
+    of pnIlluminaOld:
+      assert allIt(sr.meta["quality"].metaString, ord(it) >= 59)
+    of pnIllumina:
+      assert allIt(sr.meta["quality"].metaString, ord(it) >= 64)
+    else:
+      discard
+    yield sr
+
 iterator sequences*(fName: string, platform: PlatformName): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
-  ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_, *but*
-  ## enforces the quality line to comply with the Platform requested.
+  ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_,
+  ## *enforcing* the quality line to comply with the Platform requested.
   ##
   ## .. code-block::
   ##
@@ -388,12 +414,6 @@ iterator sequences*(fName: string, platform: PlatformName): SequenceRecord {.inl
   ##     doAssert(sequence of SequenceRecord)
   ##
   let strm = newFileStream(fName)
-  for sr in strm.sequences(ftFastq):
-    case platform
-    of pnIlluminaOld:
-      assert allIt(sr.meta["quality"].metaString, ord(it) >= 59)
-    of pnIllumina:
-      assert allIt(sr.meta["quality"].metaString, ord(it) >= 64)
-    else:
-      discard
+
+  for sr in strm.sequences(platform):
     yield sr

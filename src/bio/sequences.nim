@@ -16,6 +16,23 @@ type
     location*: string
     qualifiers*: StringTableRef
 
+  MetaKind* = enum
+    mkInt,
+    mkFloat,
+    mkSeqInt8,
+    mkString,
+    mkTableString
+
+  MetaObj* = object
+    case kind*: MetaKind
+    of mkInt: metaInt*: int
+    of mkFloat: metaFloat*: float
+    of mkSeqInt8: metaSeqInt8*: seq[int8]
+    of mkString: metaString*: string
+    of mkTableString: metaTableString*: StringTableObj
+
+  MetaRef* = ref MetaObj
+
   SequenceClass* = enum
     ## The class of the sequence, being `scSequence` a generic one.
     scSequence = "Sequence",
@@ -30,11 +47,18 @@ type
     class*: SequenceClass
 
   SequenceRecord* = object of RootObj
-    ## An intermediate construct to hold a `Sequence<#Sequence>`_ while naming
-    ## it.
+    ## An intermediate construct to hold a `Sequence<#Sequence>`_ in `record`
+    ##  while adding other data:
+    ##
+    ## * `name` is an arbitrary identifier given to the `Sequence`.
+    ## * `Features<#Feature>`_ are the *FEATURES* fields of a GenBank record.
+    ## * `Meta<#MetaObj>`_ are other `metadata`. To get access to them you need
+    ##    to import the std module `tables<https://nim-lang.org/docs/tables.html>`_.
+    ##
     name*: string
     record*: Sequence
     features*: seq[Feature]
+    meta*: Table[string, MetaObj]
 
   SequenceClassError* = object of ValueError
 

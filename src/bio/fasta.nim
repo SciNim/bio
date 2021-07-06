@@ -5,15 +5,11 @@ import strformat
 import strutils
 import tables
 
+import io
 import sequences
 export sequences
 
-
 type
-  FileType* = enum
-    ## The filetype, to allow potential future filetypes handling.
-    ftFasta = "fasta"
-
   Index* = ref object of RootObj
     ## The index is a `table` with the name of the sequence as a string, except
     ## the initial '>', and its position in the file. The filename which the
@@ -290,9 +286,6 @@ proc dumpTo*(record: SequenceRecord, fHandler: File, kind: FileType=ftFasta) =
   ## Write a `SequenceRecords<sequences.html#SequenceRecord>`_ to `fHandler`,
   ## wrapping the sequence by 60 positions.
   ## The name of the SequenceRecord remains untouched.
-  ##
-  ## TBD: `kind` is a string as in "fasta", to support different formats.
-  ## Right now only FASTA files are supported.
   ##
   ## To write a FASTA file `myOutput.fasta` with the contents:
   ##

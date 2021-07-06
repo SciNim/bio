@@ -6,10 +6,9 @@ import strutils
 import tables
 import unittest
 
-import zip/gzipfiles
+import zip / gzipfiles
 
-import bio/sequences
-import bio/fasta
+import bio / [fasta, io]
 
 
 suite "Test SequenceRecord operation":
@@ -25,7 +24,7 @@ suite "Test SequenceRecord operation":
   test "Write records as a FASTA through filename":
     dnaRecord.dumpTo(tmpOutput[0], ftFasta)
 
-    check existsFile(tmpOutput[0])
+    check fileExists(tmpOutput[0])
 
     let fastaFile = tmpOutput[0].readLines(2)
 
@@ -119,7 +118,7 @@ suite "Test SequenceRecord operation":
 
     multiRecords.dumpTo(tmpOutput[1], ftFasta)
 
-    check existsFile(tmpOutput[0])
+    check fileExists(tmpOutput[0])
 
     var fastaFile: seq[string]
     for line in tmpOutput[0].lines:

@@ -1,5 +1,6 @@
 import os
 import streams
+import strformat
 import strtabs
 import tables
 import unittest
@@ -233,3 +234,62 @@ suite "Operations with FASTQ files":
     check qString(defaultString, pnNone, pnIllumina) == newIlluminaString
     check qString(newIlluminaString, pnIllumina, pnNone) == "!\"#$%&'()_"
 
+suite "File set test":
+  ## Files provided in
+  ## P.J.A. Cock, C.J. Fields, N. Goto, M.L. Heuer and P.M. Rice (2009).
+  ## The Sanger FASTQ file format for sequences with quality scores, and the
+  ## Solexa/Illumina FASTQ variants.
+  ##
+  ## Ignored the "error_diff_ids", as the + line content is optional
+  ##
+  test "Expect to be correct":
+    for k, f in walkDir(currentSourcePath().parentDir / "test_files" / "fastq" /
+                        "right"):
+
+      var records: seq[SequenceRecord]
+      if k == pcFile:
+        for s in sequences(f):
+          records.add s
+
+  test "Expected to be wrong":
+    let wrongDir = currentSourcePath().parentDir / "test_files" / "fastq" /
+      "wrong"
+    test "Double Quality or Id line":
+      for fName in ["qual", "seq"]:
+        let f = wrongDir / &"error_double_{fName}.fastq"
+
+        expect AssertionDefect:
+          for s in sequences(f):
+            discard
+
+    test "Quality data != Sequence line":
+      for fName in ["long", "short", "no"]:
+        let f = wrongDir / &"error_{fName}_qual.fastq"
+
+        expect AssertionDefect:
+          for s in sequences(f):
+            discard
+
+    test "Non-printable chars in quality line":
+      for fName in ["del", "escape", "space", "tab", "unit_sep", "vtab"]:
+        let f = wrongDir / &"error_qual_{fName}.fastq"
+
+        expect AssertionDefect:
+          for s in sequences(f):
+            discard
+
+      for fName in ["spaces", "tabs"]:
+        let f = wrongDir / &"error_{fName}.fastq"
+
+        expect AssertionDefect:
+          for s in sequences(f):
+            discard
+
+    test "Truncated files i.e. after downloading":
+      for fName in ["at_plus", "at_qual", "at_seq", "in_plus", "in_qual",
+                    "in_seq", "in_title"]:
+        let f = wrongDir / &"error_trunc_{fName}.fastq"
+
+        expect AssertionDefect:
+          for s in sequences(f):
+            discard

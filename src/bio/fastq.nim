@@ -1,37 +1,23 @@
-# Straight from the Wikipedia: https://en.wikipedia.org/wiki/FASTQ_format
-#
-# A FASTQ file normally uses four lines per sequence.
-#
-#  Line 1 begins with a '@' character and is followed by a sequence identifier
-#    and an optional description (like a FASTA title line).
-#  Line 2 is the raw sequence letters.
-#  Line 3 begins with a '+' character and is *optionally* followed by the same
-#    sequence identifier (and any description) again.
-#  Line 4 encodes the quality values for the sequence in Line 2, and must
-#    contain the same number of symbols as letters in the sequence.
-#
-# Quality:
-#   ASCII character by adding 64 to the Phred value
-#   A Phred score of a base is: Qphred = −10*log(e) , e is the probability of
-#     the base being wrong.
-#
-#   Paper on qualities: https://doi.org/10.1093/nar/gkp1137
-#
-# Illumina
-#   @HWUSI-EAS100R:6:73:941:1973#0/1
-#    Instrument:FlowcellLane:tile:X:Y#IdxMultiplex/paired
-#
-#   @EAS139:136:FC706VJ:2:2104:15343:197393 1:Y:18:ATCACG
-#    Instrument:RunId:FlowcellId:FlowcellLane:Tile:X:Y Pair:Filtered:Control:IdxSequence
-#
-# NCBI
-#
-#   @SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72
-#   ID IlluminaTag length
-#
 ## :Author: |author|
 ## :Version: |libversion|
+##
+## A FASTQ file `normally`_ uses four lines per sequence, but multilines for
+## sequence and quality "lines" are allowed:
+##
+## * Line 1 begins with a '@' character and is followed by a sequence identifier
+##   and an optional description (like a FASTA title line).
+## * Line 2 is the raw sequence of letters.
+## * Line 3 begins with a '+' character and is *optionally* followed by the same
+##   sequence identifier (and any description) again. Some parsers enforce that
+##   the optional text here match the contents of line 1. This one ignores the
+##   line.
+## * Line 4 encodes the quality values for the sequence in Line 2, and must
+##   contain the same number of symbols as letters in the sequence.
+##
+## .. _normally: https://en.wikipedia.org/wiki/FASTQ_format
+
 import math
+import sequtils
 import sets
 import streams
 import strscans
@@ -293,6 +279,9 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ##
   ## The quality line is stored at `meta<sequences.html#MetaObj>`_ property.
   ##
+  ##  Note: when compiled with `-d:danger`, some checks implemented as
+  ##  assertions are not run.
+  ##
   ## .. code-block::
   ##
   ##   import streams
@@ -333,23 +322,36 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   var name, sequence, quality, line: string
   var loadQuality: bool
 
+  template addQual(line: typed): untyped =
+    assert line.allIt(ord(it) > 32 and ord(it) < 127), "Invalid quality character"
+    quality.add line
+
   while strm.readLine(line):
     if (line.startsWith('@') and
         len(sequence) > 0 and len(quality) == len(sequence)) or strm.atEnd:
       if strm.atEnd:
-        quality.add line
+        # Once reached the EOF, check the last record is correct. File can be
+        # truncated.
+        addQual line
+        assert len(quality) == len(sequence)
+        assert not sequence.isEmptyOrWhitespace
       let meta = {"quality": MetaObj(kind: mkString, metaString: quality)}.toTable
       yield SequenceRecord(name: name,
                            record: guess(sequence.toUpperAscii),
                            meta: meta)
       loadQuality = false
+      name = ""
       sequence = ""
+      quality = ""
 
-    if loadQuality:  # '+' was detected, we are in quality lines
+    if loadQuality:  # '+' was detected, we are in quality lines.
       if len(quality) < len(sequence):
-        quality.add line
+        addQual line
+      else:
+        raise newException(AssertionDefect, "Extra quality data found.")
     else:  # Is either name, sequence or the '+' separator line
       if line.startsWith('@'):  # Is the name line
+        assert name.isEmptyOrWhitespace  # Or we have a double @ line
         name = line[1 .. ^1]
       elif line.startsWith('+'):  # The '+' separator
         loadQuality = true

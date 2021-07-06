@@ -131,8 +131,8 @@ proc `==`*(a, b: Sequence): bool =
   ## Compare two `Sequence<#Sequence>`_. `true` if both `class` and `chain` are
   ## the same.
   runnableExamples:
-    doAssert newDna("AAACGGG") ?= Sequence(chain: "AAACGGG", class: scDna)
-    doAssert (newDna("AAACGGG") ?= newRna("AAACGGG")) == false
+    doAssert newDna("AAACGGG") == Sequence(chain: "AAACGGG", class: scDna)
+    doAssert (newDna("AAACGGG") == newRna("AAACGGG")) == false
   (a.chain == b.chain) and (a.class == b.class)
 
 proc `[]`*(s: Sequence, i: int|BackwardsIndex): char =
@@ -149,7 +149,7 @@ proc `[]`*(s: Sequence, hs: HSlice): Sequence =
   runnableExamples:
     let rna: Sequence = newRna("ACGUGGGGU")
 
-    doAssert rna[1 .. 3] ?= newRna("CGU")
+    doAssert rna[1 .. 3] == newRna("CGU")
   Sequence(chain: s.chain[hs], class: s.class)
 
 proc `[]`*(sr: SequenceRecord, i: int|BackwardsIndex): char =
@@ -340,9 +340,9 @@ proc guess*(s: string): Sequence =
   ## If the class cannot be inferred, a generic Sequence (class
   ## `scSequence<#SequenceClass>`_) is returned.
   runnableExamples:
-    doAssert guess("ATCGGCATCG") ?= newDna("ATCGGCATCG")
-    doAssert guess("AUCGGCAUCG") ?= newRna("AUCGGCAUCG")
-    doAssert guess("FSYWLSCPIK") ?= newProtein("FSYWLSCPIK")
+    doAssert guess("ATCGGCATCG") == newDna("ATCGGCATCG")
+    doAssert guess("AUCGGCAUCG") == newRna("AUCGGCAUCG")
+    doAssert guess("FSYWLSCPIK") == newProtein("FSYWLSCPIK")
   result = Sequence(chain: s, class: scSequence)
   if s.len < 5: return  # Sequence too short to guess
 

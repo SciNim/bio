@@ -57,7 +57,7 @@ proc load*(fName: string, kind: string="gb"): seq[SequenceRecord] =
   ##
   ## .. code-block::
   ##
-  ##    import bio/genbank
+  ##    import bio / genbank
   ##
   ##    let mySeqs = load("path/to/file.gb")
   let fileIn: File = open(fName)

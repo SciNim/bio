@@ -170,6 +170,7 @@ Sequences
 Operations with files
 ---------------------
 
+* `io <io.html>`_ includes some utilities commont to different formats.
 * `fasta <fasta.html>`_ is a set of utilities to work with FastA files.
 * `fastq <fastq.html>`_ is a set of utilities to work with FastQ files.
 

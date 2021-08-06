@@ -25,7 +25,6 @@ import strutils
 import sugar
 import tables
 
-import io
 import sequences
 export sequences
 
@@ -273,7 +272,7 @@ func parseTag*(tag: string, platformName: PlatformName = pnNone): Table[string, 
   else:
     return
 
-iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inline.} =
+iterator sequences*(strm: Stream): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
@@ -285,7 +284,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ## .. code-block::
   ##
   ##   import streams
-  ##   import bio/fastq
+  ##   import bio / fastq
   ##
   ##   var strm = newFileStream("path/to/file.fasq")
   ##
@@ -299,7 +298,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ##   import zip/gzipfiles # Requires https://github.com/nim-lang/zip
   ##
   ##   import streams
-  ##   import bio/fastq
+  ##   import bio / fastq
   ##
   ##   var strm = newGzFileStream("path/to/file.fasq.gz")
   ##
@@ -312,7 +311,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
   ##
   ##   import streams
   ##   import tables
-  ##   import bio/fastq
+  ##   import bio / fastq
   ##
   ##   var strm = newFileStream("path/to/file.fasq")
   ##
@@ -361,8 +360,8 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
       else:  # Is sequence
         sequence.add line
 
-proc dumpTo*(record: SequenceRecord, strm: Stream, kind: FileType=ftFastq) =
-  ## Write a `SequenceRecord<sequences.html#SequenceRecord>`_ to `fHandler`,
+proc dumpTo*(record: SequenceRecord, strm: Stream) =
+  ## Write a `SequenceRecord<sequences.html#SequenceRecord>`_ to `strm`,
   ## wrapping the sequence by 60 positions.
   ##
   ## The identifier used to save is the `name` of the SequenceRecord, and not
@@ -371,7 +370,8 @@ proc dumpTo*(record: SequenceRecord, strm: Stream, kind: FileType=ftFastq) =
   ## The quality line comes from the `Metadata` value for `quality`.
   ##
   ## .. code-block::
-  ##   `import bio/fastq`
+  ##
+  ##   import bio / fastq
   ##
   ##   let mySeq = newDna("TGCACCCCA")
   ##   var myRec = SequenceRecord(name: "My DNA Read", record: mySeq)
@@ -389,23 +389,24 @@ proc dumpTo*(record: SequenceRecord, strm: Stream, kind: FileType=ftFastq) =
   strm.write("@", record.name)
   for i, base in record.record.chain.pairs:
     if i mod wrapSize == 0:
-      strm.write('\n')
+      strm.write("\p")
     strm.write(base)
-  strm.write('\n')
+  strm.write("\p")
   strm.write("+")
   for i, qVal in record.meta.getOrDefault("quality").metaString.pairs:
     if i mod wrapSize == 0:
-      strm.write('\n')
+      strm.write("\p")
     strm.write(qVal)
-  strm.write('\n')
+  strm.write("\p")
   strm.flush()
 
-proc dumpTo*(records: seq[SequenceRecord], strm: Stream, kind: FileType=ftFastq) =
+proc dumpTo*(records: seq[SequenceRecord], strm: Stream) =
   ## A shortcut to avoid the explicit cycle to write a `seq` of
   ## `SequenceRecords<sequences.html#SequenceRecord>`_
   ##
   ## .. code-block::
-  ##   `import bio/fastq`
+  ##
+  ##   import bio / fastq
   ##
   ##   let mySeq = newDna("TGCACCCCA")
   ##   var myRecA = SequenceRecord(name: "My DNA Read1", record: mySeq)
@@ -421,17 +422,41 @@ proc dumpTo*(records: seq[SequenceRecord], strm: Stream, kind: FileType=ftFastq)
   ##     defer: fastqOut.close
   ##     myRecs.dumpTo(fastqOut)
   ##
+  ## If you need to create a Stream from a File object use newFileStream_:
+  ##
+  ## .. code-block::
+  ##
+  ##   import bio / fastq
+  ##
+  ##   let mySeq = newDna("TGCACCCCA")
+  ##   var myRec = SequenceRecord(name: "My DNA Read", record: mySeq)
+  ##   let quality = MetaObj(kind: mkString, metaString: "ABCDEFGHI")
+  ##   myRec.meta["quality"] = quality
+  ##
+  ##   let myRecs = @[myRec]
+  ##
+  ##   block:
+  ##     let outHandler = open("somefile.fastq", fmWrite)
+  ##
+  ##     let fastqOut = newFileStream(outHandler)
+  ##     defer: fastqOut.close()
+  ##
+  ##     myRecs.dumpTo(fastqOut)
+  ##
+  ##  .. _newFileStream: https://nim-lang.org/docs/streams.html#newFileStream,File
+  ##
   for sr in records:
-    sr.dumpTo(strm, kind)
+    sr.dumpTo(strm)
 
-proc dumpTo*(record: SequenceRecord, fName: string, kind: FileType=ftFasta) =
-  ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,Stream,string>`_
+proc dumpTo*(record: SequenceRecord, fName: string) =
+  ## Same as `write-through-stream proc<#dumpTo,SequenceRecord,Stream,string>`_
   ## but you only need to point out the name of the file.
   ##
   ## If the file exists, it will be silently overwritten.
   ##
   ## .. code-block::
-  ##   `import bio/fastq`
+  ##
+  ##   import bio / fastq
   ##
   ##   let mySeq = newDna("TGCACCCCA")
   ##   var myRec = SequenceRecord(name: "My DNA Read", record: mySeq)
@@ -446,10 +471,10 @@ proc dumpTo*(record: SequenceRecord, fName: string, kind: FileType=ftFasta) =
   let strm: Stream = newFileStream(fName, fmWrite)
   defer: strm.close()
 
-  record.dumpTo(strm, kind)
+  record.dumpTo(strm)
 
-proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: FileType=ftFasta) =
-  ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,Stream,string>`_
+proc dumpTo*(records: seq[SequenceRecord], fName: string) =
+  ## Same as `write-through-stream proc<#dumpTo,SequenceRecord,Stream,string>`_
   ## but you only need to point out the name of the file.
   ##
   ## If the file exists, it will be silently overwritten.
@@ -472,22 +497,22 @@ proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: FileType=ftFasta
   defer: strm.close()
 
   for sr in records:
-    sr.dumpTo(strm, kind)
+    sr.dumpTo(strm)
 
-iterator sequences*(fName: string, kind: FileType=ftFastq): SequenceRecord {.inline.} =
+iterator sequences*(fName: string): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
   ## .. code-block::
   ##
-  ##   import bio/fastq
+  ##   import bio / fastq
   ##
   ##   for sequence in sequences("path/to/file.fasq"):
   ##     doAssert(sequence of SequenceRecord)
   ##
   let strm = newFileStream(fName)
 
-  for sr in strm.sequences(ftFastq):
+  for sr in strm.sequences:
     yield sr
 
 iterator sequences*(strm: Stream, platform: PlatformName): SequenceRecord {.inline.} =
@@ -497,14 +522,14 @@ iterator sequences*(strm: Stream, platform: PlatformName): SequenceRecord {.inli
   ## .. code-block::
   ##
   ##   import streams
-  ##   import bio/fastq
+  ##   import bio / fastq
   ##
   ##   var strm = newFileStream("path/to/file.fasq")
   ##
   ##   for sequence in sequences(strm, pnIllumina):
   ##     doAssert(sequence of SequenceRecord)
   ##
-  for sr in strm.sequences(ftFastq):
+  for sr in strm.sequences:
     case platform
     of pnIlluminaOld:
       assert allIt(sr.meta["quality"].metaString, ord(it) >= 59)
@@ -521,7 +546,7 @@ iterator sequences*(fName: string, platform: PlatformName): SequenceRecord {.inl
   ##
   ## .. code-block::
   ##
-  ##   import bio/fastq
+  ##   import bio / fastq
   ##
   ##   for sequence in sequences("path/to/file.fasq", pnIlluminaOld):
   ##     doAssert(sequence of SequenceRecord)

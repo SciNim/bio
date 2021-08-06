@@ -6,7 +6,7 @@ import strtabs
 import tables
 import unittest
 
-import bio / fastq
+import bio / [fastq, io]
 
 
 proc `$`(m: MetaObj): string =

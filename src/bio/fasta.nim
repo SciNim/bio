@@ -5,7 +5,6 @@ import strformat
 import strutils
 import tables
 
-import io
 import sequences
 export sequences
 
@@ -69,7 +68,7 @@ type
 ## That is about 100x faster and uses 100x less memory than the equivalent
 ## `bio` code.
 ##
-iterator sequences*(strm: Stream, kind: FileType=ftFasta):
+iterator sequences*(strm: Stream):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
@@ -77,7 +76,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFasta):
   ## .. code-block::
   ##
   ##   import streams
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   var strm = newFileStream("path/to/file.fas")
   ##
@@ -91,7 +90,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFasta):
   ##   import zip/gzipfiles # Requires https://github.com/nim-lang/zip
   ##
   ##   import streams
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   var strm = newGzFileStream("path/to/file.fas.gz")
   ##
@@ -111,7 +110,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFasta):
     else:
       sequence.add line
 
-iterator sequences*(data: seq[string], kind: FileType=ftFasta):
+iterator sequences*(data: seq[string]):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## sequence of strings, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
@@ -120,25 +119,25 @@ iterator sequences*(data: seq[string], kind: FileType=ftFasta):
   ##
   ## .. code-block::
   ##
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   const data = slurp("path/to/file.fas").splitLines
   ##
   ##   for sequence in sequences(data):
   ##     doAssert(sequence of SequenceRecord)
-  let strm = newStringStream(join(data, "\n"))
+  let strm = newStringStream(join(data, "\p"))
 
   for sr in strm.sequences():
     yield sr
 
-iterator sequences*(fName: string, kind: FileType=ftFasta):
+iterator sequences*(fName: string):
   SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
   ## filename, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
   ## .. code-block::
   ##
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   for sequence in sequences("path/to/file.fas"):
   ##     doAssert(sequence of SequenceRecord)
@@ -159,7 +158,7 @@ proc newIndex*(fName: string): Index =
   ##
   ## .. code-block::
   ##
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let index: Index = newIndex("path/to/file.fas")
   ##
@@ -189,7 +188,7 @@ proc `[]`*(index: Index, fileIn: File, name: string): SequenceRecord {.inline.} 
   ##
   ## .. code-block::
   ##
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let index: Index = newIndex("path/to/file.fas")
   ##
@@ -219,7 +218,7 @@ proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
   ##
   ## .. code-block::
   ##
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let index: Index = newIndex("path/to/file.fas")
   ##   echo index["My Record"]
@@ -234,7 +233,7 @@ proc `$`*(index: Index): string {.inline.} =
   ##
   ## .. code-block::
   ##
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let index: Index = newIndex("path/to/file.fas")
   ##   echo index
@@ -256,7 +255,7 @@ iterator `items`*(index: Index): string =
   ##
   ## .. code-block::
   ##
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let index: Index = newIndex("path/to/file.fas")
   ##
@@ -267,7 +266,7 @@ iterator `items`*(index: Index): string =
   for k in index.table.keys:
     yield k
 
-proc load*(fName: string, kind: FileType=ftFasta): seq[SequenceRecord] =
+proc load*(fName: string): seq[SequenceRecord] =
   ## Load a `seq` of `SequenceRecords<sequences.html#SequenceRecord>`_ from a
   ## filename.
   ##
@@ -276,47 +275,48 @@ proc load*(fName: string, kind: FileType=ftFasta): seq[SequenceRecord] =
   ##
   ## .. code-block::
   ##
-  ##    import bio/fasta
+  ##   import bio / fasta
   ##
-  ##    let mySeqs = load("path/to/file.fas")
+  ##   let mySeqs = load("path/to/file.fas")
 
   for sequence in sequences(fName):
     result.add sequence
 
-proc dumpTo*(record: SequenceRecord, fHandler: File, kind: FileType=ftFasta) =
-  ## Write a `SequenceRecords<sequences.html#SequenceRecord>`_ to `fHandler`,
+proc dumpTo*(record: SequenceRecord, strm: Stream) =
+  ## Write a `SequenceRecords<sequences.html#SequenceRecord>`_ to `strm`,
   ## wrapping the sequence by 60 positions.
+  ##
   ## The name of the SequenceRecord remains untouched.
   ##
   ## To write a FASTA file `myOutput.fasta` with the contents:
   ##
   ## .. code-block::
-  ##   `import bio/fasta`
+  ##   import bio / fasta
   ##
   ##   let mySeq = newDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
   ##
   ##   block:
-  ##     let fastaOut = open("myOutput.fasta", fmWrite)
+  ##     let fastaOut = newFileStream("myOutput.fasta", fmWrite)
   ##     defer: fastaOut.close
   ##     myRec.dumpTo(fastaOut)
   ##
   const wrapSize: int = 60
-  fHandler.write(">", record.name)
+  strm.write(">", record.name)
 
   for i, base in record.record.chain.pairs:
     if i mod wrapSize == 0:
-      fHandler.write('\n')
-    fHandler.write(base)
-  fHandler.write('\n')
-  fHandler.flushFile
+      strm.write("\p")
+    strm.write(base)
+  strm.write("\p")
+  strm.flush
 
-proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: FileType=ftFasta) =
+proc dumpTo*(records: seq[SequenceRecord], strm: Stream) =
   ## A shortcut to avoid the explicit cycle to write a `seq` of
   ## `SequenceRecords<sequences.html#SequenceRecord>`_
   ##
   ## .. code-block::
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let mySeqA = newDna("TGCACCCCA")
   ##   let mySeqB = newDna("GTGAGAGTG")
@@ -324,40 +324,40 @@ proc dumpTo*(records: seq[SequenceRecord], fHandler: File, kind: FileType=ftFast
   ##   let myRecB = SequenceRecord(name: "My DNA sequence", record: mySeqB)
   ##
   ##   block:
-  ##     let fastaOut = open("myOutput.fasta", fmWrite)
+  ##     let fastaOut = newFileStream("myOutput.fasta", fmWrite)
   ##     defer: fastaOut.close
   ##     @[myRecA, myRecB].dumpTo(fastaOut)
   ##
   for sr in records:
-    sr.dumpTo(fHandler, kind)
+    sr.dumpTo(strm)
 
-proc dumpTo*(record: SequenceRecord, fName: string, kind: FileType=ftFasta) =
-  ## Same as `write-through-handler proc<#dumpTo,SequenceRecord,File,string>`_
+proc dumpTo*(record: SequenceRecord, fName: string) =
+  ## Same as `write-through-stream proc<#dumpTo,SequenceRecord,Stream,string>`_
   ## but you only need to point out the name of the file.
   ##
   ## If the file exists, it will be silently overwritten.
   ##
   ## .. code-block::
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let mySeq = newDna("TGCACCCCA")
   ##   let myRec = SequenceRecord(name: "My DNA sequence", record: mySeq)
   ##
   ##   myRec.dumpTo("myOutput.fasta")
   ##
-  let fHandler: File = open(fName, fmWrite)
-  defer: fHandler.close()
+  let strm: Stream = newFileStream(fName, fmWrite)
+  defer: strm.close
 
-  record.dumpTo(fHandler, kind)
+  record.dumpTo(strm)
 
-proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: FileType=ftFasta) =
-  ## Same as `write-through-handler proc<#dumpTo,seq[SequenceRecord],File,string>`_
+proc dumpTo*(records: seq[SequenceRecord], fName: string) =
+  ## Same as `write-through-stream proc<#dumpTo,seq[SequenceRecord],Stream,string>`_
   ## but you only need to point out the name of the file.
   ##
   ## If the file exists, it will be silently overwritten.
   ##
   ## .. code-block::
-  ##   import bio/fasta
+  ##   import bio / fasta
   ##
   ##   let mySeqA = newDna("TGCACCCCA")
   ##   let mySeqB = newDna("GTGAGAGTG")
@@ -367,8 +367,8 @@ proc dumpTo*(records: seq[SequenceRecord], fName: string, kind: FileType=ftFasta
   ##   myRecs = @[myRecA, myRecB]
   ##   myRecs.dumpTo("myOutput.fasta")
   ##
-  let fHandler: File = open(fName, fmWrite)
-  defer: fHandler.close()
+  let strm: Stream = newFileStream(fName, fmWrite)
+  defer: strm.close
 
   for record in records:
-    record.dumpTo(fHandler, kind)
+    record.dumpTo(strm)

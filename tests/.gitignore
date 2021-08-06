@@ -2,4 +2,5 @@ test_entrez
 test_fasta
 test_fastq
 test_genbank
+test_io
 test_seqs

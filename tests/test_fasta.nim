@@ -18,11 +18,11 @@ suite "Test SequenceRecord operation":
     var tmpOutput: (string, File) = mkstemp("tests/file_")
 
   teardown:
-    tmpOutput[1].close()
+    tmpOutput[1].close
     removeFile(tmpOutput[0])
 
   test "Write records as a FASTA through filename":
-    dnaRecord.dumpTo(tmpOutput[0], ftFasta)
+    dnaRecord.dumpTo(tmpOutput[0])
 
     check fileExists(tmpOutput[0])
 
@@ -30,8 +30,9 @@ suite "Test SequenceRecord operation":
 
     check fastaFile == @[">Sample", "ACGTGGGGT"]
 
-  test "Write records as a FASTA through handler":
-    dnaRecord.dumpTo(tmpOutput[1], ftFasta)
+  test "Write records as a FASTA through stream":
+    let output = newFileStream(tmpOutput[1])
+    dnaRecord.dumpTo(output)
 
     let fastaFile = tmpOutput[0].readLines(2)
 
@@ -39,7 +40,8 @@ suite "Test SequenceRecord operation":
 
   test "Automatically wrap the long lines to 60 chars":
     dna.chain = repeat(dna.chain, 8)
-    dnaRecord.dumpTo(tmpOutput[1], ftFasta)
+    let output = newFileStream(tmpOutput[1])
+    dnaRecord.dumpTo(output)
 
     let fastaFile = tmpOutput[0].readLines(3)
 
@@ -116,7 +118,9 @@ suite "Test SequenceRecord operation":
   test "Write a bunch of records as a FASTA through filehandler":
     let multiRecords: seq[SequenceRecord] = @[dnaRecord, dnaRecord]
 
-    multiRecords.dumpTo(tmpOutput[1], ftFasta)
+    let output = newFileStream(tmpOutput[1])
+
+    multiRecords.dumpTo(output)
 
     check fileExists(tmpOutput[0])
 

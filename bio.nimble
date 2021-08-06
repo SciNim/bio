@@ -2,7 +2,7 @@ import os
 import strformat
 # Package
 
-version       = "0.2.8"
+version       = "0.2.9"
 author        = "Xabier Bello"
 description   = "A set of tools to do biological operations."
 license       = "MIT"
@@ -41,7 +41,7 @@ proc buildDocs(rst, src: string) =
     let outHtml = rst_src.replace(".rst", ".html")
     selfExec(&"-o:{outHtml} rst2html {rst}/{rst_src}")
 
-  for nim_src in ["sequences", "fasta", "fastq", "entrez"]:
+  for nim_src in ["sequences", "io", "fasta", "fastq", "entrez"]:
     selfExec(&"doc --project --index:on --outdir:. {src}/{nim_src}.nim")
 
 proc postDocs() =

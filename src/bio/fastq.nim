@@ -338,7 +338,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFastq): SequenceRecord {.inli
         assert len(quality) == len(sequence)
         assert not sequence.isEmptyOrWhitespace
       let meta = {"quality": MetaObj(kind: mkString, metaString: quality)}.toTable
-      yield SequenceRecord(name: name,
+      yield SequenceRecord(name: move(name),
                            record: guess(sequence.toUpperAscii),
                            meta: meta)
       loadQuality = false

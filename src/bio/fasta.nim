@@ -103,7 +103,7 @@ iterator sequences*(strm: Stream, kind: FileType=ftFasta):
     if (line.startsWith('>') and sequence.len > 0) or strm.atEnd:
       if strm.atEnd:
         sequence.add line
-      yield SequenceRecord(name: name, record: guess(sequence.toUpperAscii))
+      yield SequenceRecord(name: move(name), record: guess(sequence.toUpperAscii))
 
     if line.startsWith('>'):
       sequence = ""
@@ -142,7 +142,8 @@ iterator sequences*(fName: string, kind: FileType=ftFasta):
   ##
   ##   for sequence in sequences("path/to/file.fas"):
   ##     doAssert(sequence of SequenceRecord)
-
+  #
+  # TODO: Add heare a check for fileExists
   let strm = newFileStream(fName)
 
   for sr in strm.sequences():

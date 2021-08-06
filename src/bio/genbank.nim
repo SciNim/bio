@@ -7,7 +7,7 @@ import sequences
 export sequences
 
 
-const FIELD = 12
+const field = 12
 
 proc parseFeatures(fileIn: File): seq[Feature] =
   ## Private procedure
@@ -73,10 +73,10 @@ proc load*(fName: string, kind: string="gb"): seq[SequenceRecord] =
     if line.startsWith("ACCESSION"):
       discard ## TODO Get the accession id
     if line.startsWith("DEFINITION"):
-      name = line[FIELD .. ^1]
+      name = line[field .. ^1]
       line = fileIn.readLine
       while line[0] == ' ':
-        name.add line[FIELD - 1 .. ^1]  # (- 1) borrows a space to join lines
+        name.add line[field - 1 .. ^1]  # (- 1) borrows a space to join lines
         line = fileIn.readLine
     if line.startsWith("FEATURES"):
       features = parseFeatures(fileIn)
@@ -86,6 +86,6 @@ proc load*(fName: string, kind: string="gb"): seq[SequenceRecord] =
         sequence.add line[10 .. ^1].replace(" ", "")
         line = fileIn.readLine
     if line.startsWith("//"):
-      result.add SequenceRecord(name: name,
+      result.add SequenceRecord(name: move(name),
                                 record: guess(sequence.toUpperAscii),
-                                features: features)
+                                features: move(features))

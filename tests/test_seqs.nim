@@ -224,7 +224,7 @@ suite "Test more complex sequence operations":
     check rnaShifted.reverseComplement ==
       dnaShifted.transcript.reverseComplement
 
-suite "Test sequenceRecord operations":
+suite "Test SequenceRecord operations":
   setup:
     let sequence: Sequence = newDna("ACTGGTGGA")
     let sr: SequenceRecord = SequenceRecord(name: "SR1",

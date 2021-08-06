@@ -154,6 +154,11 @@ suite "Test SequenceRecord operation":
     check records[1].record.chain.len == 120
     check records[0].record.class == scDna
 
+  test "Yielded record can be modified":
+    for s in sequences(currentSourcePath().parentDir / "test_files" /
+                       "regular.fas"):
+      s.name = "New Name"
+
 suite "Operations with FASTA files":
   setup:
     let fastaF: string = currentSourcePath().parentDir / "test_files" / "regular.fas"

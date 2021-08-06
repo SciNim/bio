@@ -46,7 +46,9 @@ type
     chain*: string
     class*: SequenceClass
 
-  SequenceRecord* = object of RootObj
+  SequenceRecord* = ref SequenceRecordObj
+
+  SequenceRecordObj* = object of RootObj
     ## An intermediate construct to hold a `Sequence<#Sequence>`_ in `record`
     ##  while adding other data:
     ##

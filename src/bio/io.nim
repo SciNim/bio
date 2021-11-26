@@ -2,7 +2,7 @@
 ## :Version: |libversion|
 ##
 ## If your code works with different formats, you can use this module to access
-## different file formats
+## them.
 ##
 import streams
 
@@ -38,8 +38,8 @@ proc dumpTo*(record: SequenceRecord, strm: Stream, kind: FileType) =
     fasta.dumpTo(record, strm)
   of ftFastq:
     fastq.dumpTo(record, strm)
-  else:
-    echo "Not implemented"
+  #else:
+  #  echo "Not implemented"
 
 proc dumpTo*(records: seq[SequenceRecord], strm: Stream, kind: FileType) =
   ## A shortcut to avoid the explicit cycle to write a `seq` of
@@ -94,8 +94,8 @@ iterator sequences*(strm: Stream, kind: FileType, platform: PlatformName = pnNon
   of ftFastq:
     for sr in fastq.sequences(strm, platform):
       yield sr
-  else:
-    echo "Not implemented"
+  #else:
+  #  echo "Not implemented"
 
 iterator sequences*(fName: string, kind: FileType, platform: PlatformName = pnNone):
     SequenceRecord {.inline.} =
@@ -114,5 +114,5 @@ iterator sequences*(fName: string, kind: FileType, platform: PlatformName = pnNo
   of ftFastq, ftFasta:
     for sr in sequences(strm, kind, platform):
       yield sr
-  else:
-    echo "Not implemented"
+  #else:
+  #  echo "Not implemented"

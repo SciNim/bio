@@ -16,7 +16,7 @@ To install the library the easiest way is to use:
 
 .. code-block::
 
-    $ nimble install bio
+    $ nimble install https://github.com/scinim/bio
 
 As this is a library, you should include `bio` in your .nimble file. I always
 prefer to pin the versions, as the API may change between releases and break
@@ -33,7 +33,7 @@ Add a new requirement or expand the existing one:
 .. code-block:: nim
 
     requires "nim >= 1.4.8"
-    requires "bio 0.2.7"
+    requires "https://github.com/scinim/bio 0.2.7"
 
 .. code-block:: nim
 
@@ -42,7 +42,7 @@ Add a new requirement or expand the existing one:
 
 .. code-block:: nim
 
-    requires "nim >= 1.4.8, bio 0.2.7"
+    requires "nim >= 1.4.8, https://gitlab.com/xbello/bio 0.2.7"
 
 ..
 
@@ -170,9 +170,14 @@ Sequences
 Operations with files
 ---------------------
 
-* `io <io.html>`_ includes some utilities commont to different formats.
+* `io <io.html>`_ includes some utilities common to different formats.
 * `fasta <fasta.html>`_ is a set of utilities to work with FastA files.
 * `fastq <fastq.html>`_ is a set of utilities to work with FastQ files.
+
+Phylogeny
+---------
+
+* `newick <newick.html>`_ I/O for the Newick tree format.
 
 NCBI Entrez
 -----------

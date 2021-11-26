@@ -112,7 +112,7 @@ proc `$`*(s: Sequence): string =
 
   let limit: int = 59
   var e: string
-  let reprChain: string = s.chain[.. min(s.chain.len - 1, limit)]
+  let reprChain: string = s.chain[0 .. min(s.chain.len - 1, limit)]
   if s.chain.len > limit:
     e = "…"  # This cannot be a char because is over 1 byte
   &"{s.class}: {reprChain}{e}"
@@ -498,7 +498,7 @@ proc codon*(s: Sequence, position: int): Sequence =
         result.chain = join(codon)
         break
       if codon.len == 3:
-        codon.delete(0, 2)
+        codon.delete(0..2)
   else:
     raise newException(SequenceClassError,
                        &"Operation available only for {scDna} or {scRna}.")

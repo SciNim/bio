@@ -41,8 +41,9 @@ proc buildDocs(rst, src: string) =
     let outHtml = rst_src.replace(".rst", ".html")
     selfExec(&"-o:{outHtml} rst2html {rst}/{rst_src}")
 
-  for nim_src in ["sequences", "io", "fasta", "fastq", "entrez"]:
-    selfExec(&"doc --project --index:on --outdir:. {src}/{nim_src}.nim")
+  for nim_src in ["sequences", "io", "fasta", "fastq", "entrez",
+    "phylo/newick"]:
+    selfExec(&"doc --index:on --outdir:. {src}/{nim_src}.nim")
 
 proc postDocs() =
   selfExec("buildIndex -o:theindex.html .")

@@ -34,8 +34,9 @@ proc parse*(s: string): Tree =
   ##
   runnableExamples:
     let tree: Tree = parse("((A,B),C)")
-    doAssert len(tree) == 3
-    doAssert tree[0].name == "A"
+    echo len(tree)
+    doAssert len(tree) == 5  # 3 leafs + 1 branch (A,B) + 1 branch (A,B),C
+    doAssert tree.nodes[0].label == "A"
 
   let seps = {'(', ')', ',', ':', ';', '\'', '[', ']'}
   result = Tree()

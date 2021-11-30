@@ -1,8 +1,10 @@
+import algorithm
 import os
 import posix_utils
 import streams
 import strformat
 import strtabs
+import strutils
 import tables
 import unittest
 
@@ -316,6 +318,17 @@ suite "Operations with FASTQ files":
 
     check qString(defaultString, pnNone, pnIllumina) == newIlluminaString
     check qString(newIlluminaString, pnIllumina, pnNone) == "!\"#$%&'()_"
+
+  test "Reversing a Sequence Record also reverses Quality string":
+    let strm = newFileStream(fastqF)
+    var records: seq[SequenceRecord]
+
+    for s in sequences(strm):
+      records.add(s)
+
+    let revCompRecord = reverseComplement(records[0])
+    check revCompRecord.meta["quality"].metaString ==
+      join(reversed(records[0].meta["quality"].metaString))
 
 suite "File set test":
   ## Files provided in

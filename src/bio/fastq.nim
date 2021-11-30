@@ -16,6 +16,7 @@
 ##
 ## .. _normally: https://en.wikipedia.org/wiki/FASTQ_format
 
+import algorithm
 import math
 import sequtils
 import sets
@@ -499,6 +500,29 @@ proc dumpTo*(records: seq[SequenceRecord], fName: string) =
 
   for sr in records:
     sr.dumpTo(strm)
+
+proc reverseComplement*(sr: SequenceRecord): SequenceRecord =
+  ## Overloads the main `reverseComplement<sequences.html#reverseComplement,Sequence>`_
+  ## to reverse the quality string in Meta.
+  runnableExamples:
+    import tables  # To build the Meta
+    let dna = SequenceRecord(chain: "ACGTGGGGT", class: scDna)
+    # The meta["quality"] of a Sequence comes from the FastQ file.
+    dna.meta = {"quality": MetaObj(kind: mkString, metaString: "123456789")}.toTable
+
+    let revDna = dna.reverseComplement
+    doAssert revDna.chain == "ACCCCACGT"
+    doAssert revDna.meta["quality"].metaString == "987654321"
+
+  let tmp = sequences.reverseComplement(sr)
+  result = SequenceRecord(chain: tmp.chain,
+                          class: tmp.class,
+                          name: sr.name,
+                          meta: sr.meta,
+                          features: sr.features)
+
+  result.meta["quality"].metaString = join(
+    reversed(sr.meta["quality"].metaString))
 
 iterator sequences*(fName: string): SequenceRecord {.inline.} =
   ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given

@@ -24,7 +24,8 @@ Creating sequences
 
     import bio/sequences
 
-    let myDNA = guess("ACGTGTGAAC")
+    let chain = "ACGTGTGAAC"
+    let myDNA = Sequence(chain: chain, guess(chain))
 
     echo myDNA.complement
 
@@ -57,8 +58,8 @@ your code editor and type:
    let srs: seq[SequenceRecord] = load("sample.fasta")
    for sequence in srs:
      echo sequence.name, " GC-content: ",
-       sequence.record.chain.count({'C', 'G'}) /
-       sequence.record.chain.count({'A', 'C', 'G', 'T'})
+       sequence.chain.count({'C', 'G'}) /
+       sequence.chain.count({'A', 'C', 'G', 'T'})
 
 Exit the editor and compile/run the code:
 
@@ -115,7 +116,7 @@ naive method to find the longest ORFs of each sequence:
   6   for sr in srs:
   7     stops = sequenceRecord.len
   8     for shift in 0 .. 2:
-  9       currentTrans = sr[shift .. ^(shift + 1)].record.translate
+  9       currentTrans = sr[shift .. ^(shift + 1)].translate
   10      currentStops = currentTrans.chain.count('*')
   11      if currentStops < stops:
   12        stops = currentStops
@@ -152,8 +153,8 @@ Fastas (using a third party library like zip_).
 
     for sequence in sequences("sample.fasta"):
       echo sequence.name, " GC-content: ",
-        sequence.record.chain.count({'C', 'G'}) /
-        sequence.record.chain.count({'A', 'C', 'G', 'T'})
+        sequence.chain.count({'C', 'G'}) /
+        sequence.chain.count({'A', 'C', 'G', 'T'})
 
 .. code-block::
 
@@ -185,7 +186,7 @@ like files with uneven sequences:
   6     maxLen = max(len(sr), maxLen)
 
   7   for sr in srs:
-  8     sr.record.chain.add repeat('-', maxLen - len(sr))
+  8     sr.chain.add repeat('-', maxLen - len(sr))
 
   9   srs.dumpTo("sample_output.fasta")
 

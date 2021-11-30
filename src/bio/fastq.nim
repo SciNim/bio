@@ -273,8 +273,8 @@ func parseTag*(tag: string, platformName: PlatformName = pnNone): Table[string, 
     return
 
 iterator sequences*(strm: Stream): SequenceRecord {.inline.} =
-  ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
-  ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
+  ## Iterate through all the sequences in a given stream, yielding
+  ## `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
   ## The quality line is stored at `meta<sequences.html#MetaObj>`_ property.
   ##
@@ -338,7 +338,8 @@ iterator sequences*(strm: Stream): SequenceRecord {.inline.} =
         assert not sequence.isEmptyOrWhitespace
       let meta = {"quality": MetaObj(kind: mkString, metaString: quality)}.toTable
       yield SequenceRecord(name: move(name),
-                           record: guess(sequence.toUpperAscii),
+                           chain: stripSeq(sequence.toUpperAscii),
+                           class: guess(sequence.toUpperAscii),
                            meta: meta)
       loadQuality = false
       name = ""
@@ -387,7 +388,7 @@ proc dumpTo*(record: SequenceRecord, strm: Stream) =
   const wrapSize: int = 60
 
   strm.write("@", record.name)
-  for i, base in record.record.chain.pairs:
+  for i, base in record.chain.pairs:
     if i mod wrapSize == 0:
       strm.write("\p")
     strm.write(base)

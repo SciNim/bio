@@ -3,4 +3,5 @@ test_fasta
 test_fastq
 test_genbank
 test_io
+test_phylo
 test_seqs

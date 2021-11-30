@@ -87,5 +87,6 @@ proc load*(fName: string, kind: string="gb"): seq[SequenceRecord] =
         line = fileIn.readLine
     if line.startsWith("//"):
       result.add SequenceRecord(name: move(name),
-                                record: guess(sequence.toUpperAscii),
+                                chain: sequence.toUpperAscii,
+                                class: guess(sequence.toUpperAscii),
                                 features: move(features))

@@ -86,29 +86,29 @@ suite "Test Sequence operation":
     check dna != rnaT
 
   test "Sequence class guessed":
-    check guess(dnaT.chain) == newDna("ACGTGGGGT")
-    check guess(rnaT.chain) == newRna("ACGUGGGGU")
-    check guess("FSYWLSCPIK") == newProtein("FSYWLSCPIK")
+    check guess(dnaT.chain) == scDna
+    check guess(rnaT.chain) == scRna
+    check guess("FSYWLSCPIK") == scProtein
 
-    check guess(proteinT.chain) == Sequence(chain: proteinT.chain, class: scSequence)
+    check guess(proteinT.chain) == scSequence
 
   test "A slightly more complex guessing (dashes)":
-    check guess("---------------------ACGTGGGGT").class == scDna
-    check guess("--------------------FSYWLSCPIK").class == scProtein
+    check guess("---------------------ACGTGGGGT") == scDna
+    check guess("--------------------FSYWLSCPIK") == scProtein
 
     # Indefinitions are resolved
-    check guess("NNNNNNNNNNNNNNNNNNNNNNNNNNNNACTGGTGG").class == scDna
-    check guess("XXXXXXXXXXXXXXXXXXXXXXXXXXFSYWLSCPIK").class == scProtein
+    check guess("NNNNNNNNNNNNNNNNNNNNNNNNNNNNACTGGTGG") == scDna
+    check guess("XXXXXXXXXXXXXXXXXXXXXXXXXXFSYWLSCPIK") == scProtein
 
   test "Operations over sequences guessed as DNA":
-    let myDna = guess("ACGTGGGGT")
+    let myDna = Sequence(chain: "ACGTGGGGT", class: guess("ACGTGGGGT"))
 
     check myDna.complement == dnaT.complement
     check myDna.transcript == newRna("ACGUGGGGU")
     check myDna.translate == newProtein("TWG")
 
   test "Operations over sequences guessed as RNA":
-    let myRna = guess("ACGUGGGGU")
+    let myRna = Sequence(chain: "ACGUGGGGU", class: guess("ACGUGGGGU"))
 
     check myRna.complement == newRna("UGCACCCCA")
     check myRna.backTranscript == newDna("ACGTGGGGT")
@@ -227,8 +227,8 @@ suite "Test more complex sequence operations":
 suite "Test SequenceRecord operations":
   setup:
     let sequence: Sequence = newDna("ACTGGTGGA")
-    let sr: SequenceRecord = SequenceRecord(name: "SR1",
-                                            record: sequence)
+    let sr: SequenceRecord = SequenceRecord(
+      name: "SR1", chain: "ACTGGTGGA", class: scDna)
 
   test "SequenceRecord length can be checked":
     check sr.len == sequence.len
@@ -243,8 +243,8 @@ suite "Test SequenceRecord operations":
 
   test "SequenceRecord slicing":
     let slice = sr[1..^2]
-    check slice.record.chain == "CTGGTGG"
-    check slice.record.class == sequence.class
+    check slice.chain == "CTGGTGG"
+    check slice.class == sr.class
     check slice.name == sr.name & " (1 .. ^2)"
 
   test "SequenceRecord nucleotide iteration":
@@ -268,14 +268,14 @@ suite "Test SequenceRecord operations":
 
   test "SequenceRecord position replacement":
     sr[0] = 'T'
-    doAssert sr.record.chain == "TCTGGTGGA"
+    doAssert sr.chain == "TCTGGTGGA"
 
     sr[^1] = 'T'
-    doAssert sr.record.chain == "TCTGGTGGT"
+    doAssert sr.chain == "TCTGGTGGT"
 
   test "SequenceRecord slice assignment":
     sr[0 .. 4] = "AAAA"
-    doAssert sr.record.chain == "AAAATGGA"
+    doAssert sr.chain == "AAAATGGA"
 
   test "SequenceRecord getting a codon":
     # From plain sequences (no gaps)
@@ -292,7 +292,8 @@ suite "Test SequenceRecord operations":
 
   test "Zipping two SequenceRecords":
     let sequence2: Sequence = newDna("GTGCATCAGT")
-    let sr2: SequenceRecord = SequenceRecord(name: "S2", record: sequence2)
+    let sr2: SequenceRecord = SequenceRecord(
+      name: "S2", chain: "GTGCATCAGT", class: scDna)
 
     let pairs = collect(newSeq):
       for s in zip(sr, sr2):
@@ -310,7 +311,8 @@ suite "Test SequenceRecord Features":
     let feature = Feature(key: "CDS", location: "7..1485",
                           qualifiers: qualifiers)
     var dnaRec = SequenceRecord(name: "DNA sample",
-                                record: dna,
+                                chain: dna.chain,
+                                class: dna.class,
                                 features: @[feature])
 
     check dnaRec.features[0].key == "CDS"

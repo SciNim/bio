@@ -48,9 +48,9 @@ type
 
   SequenceRecord* = ref SequenceRecordObj
 
-  SequenceRecordObj* = object of RootObj
-    ## An intermediate construct to hold a `Sequence<#Sequence>`_ in `record`
-    ##  while adding other data:
+  SequenceRecordObj* = object of Sequence
+    ## An intermediate construct to expand `Sequence<#Sequence>`_ with other
+    ## data:
     ##
     ## * `name` is an arbitrary identifier given to the `Sequence`.
     ## * `Features<#Feature>`_ are the *FEATURES* fields of a GenBank record.
@@ -58,14 +58,14 @@ type
     ##    to import the std module `tables<https://nim-lang.org/docs/tables.html>`_.
     ##
     name*: string
-    record*: Sequence
     features*: seq[Feature]
     meta*: Table[string, MetaObj]
 
   SequenceClassError* = object of ValueError
 
-proc stripSeq(s: string): string =
-  ## Remove strutils.Whitespace from string (targeting newlines and the like).
+proc stripSeq*(s: string): string =
+  ## Remove `Whitespace<https://nim-lang.org/docs/strutils.html#Whitespace>`_
+  ## from string (targeting newlines and the like).
   for c in s:
     if likely(c notin Whitespace):
       result.add c
@@ -94,6 +94,14 @@ proc newProtein*(chain: string): Sequence =
     doAssert protein.class == scProtein
   Sequence(chain: stripSeq(chain), class: scProtein)
 
+proc truncate(chain: string): string =
+  ## Truncate a `Sequence<#Sequence>`_ chain to less than 60 chars if longer
+  ##
+  let limit: int = 59
+  result = chain[0 .. min(chain.len - 1, limit)]
+  if chain.len > limit:
+    result.add "…"
+
 proc `$`*(s: Sequence): string =
   ## `Sequence<#Sequence>`_ representation is limited to "`Class` + 60 chars"
   ## of sequence.
@@ -110,22 +118,17 @@ proc `$`*(s: Sequence): string =
     doAssert $rna ==
       "RNA: ACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGGGGUACGUGG…"
 
-  let limit: int = 59
-  var e: string
-  let reprChain: string = s.chain[0 .. min(s.chain.len - 1, limit)]
-  if s.chain.len > limit:
-    e = "…"  # This cannot be a char because is over 1 byte
-  &"{s.class}: {reprChain}{e}"
+  &"{s.class}: {truncate(s.chain)}"
 
 proc `$`*(sr: SequenceRecord): string =
   ## Same as the `$<#$,Sequence>`_ for `Sequence<#Sequence>`_, but adding the
   ## `name` of the `SequenceRecord<#SequenceRecord>`_.
   runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
+    let sequenceRecord = SequenceRecord(
+      name: "MyRna", chain: "ACGUGGGGU", class: scRna)
     doAssert $sequenceRecord == "MyRna [RNA: ACGUGGGGU]"
 
-  &"{sr.name} [{sr.record}]"
+  &"{sr.name} [{sr.class}: {truncate(sr.chain)}]"
 
 proc `$`*(bi: BackwardsIndex): string = &"^{bi.int}"
 
@@ -154,31 +157,22 @@ proc `[]`*(s: Sequence, hs: HSlice): Sequence =
     doAssert rna[1 .. 3] == newRna("CGU")
   Sequence(chain: s.chain[hs], class: s.class)
 
-proc `[]`*(sr: SequenceRecord, i: int|BackwardsIndex): char =
-  ## Gets a position of a `SequenceRecord<#SequenceRecord>`_ as if it was a
-  ## string.
-  runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
-
-    doAssert sequenceRecord[0] == 'A'
-    doAssert sequenceRecord[^1] == 'U'
-  sr.record[i]
-
 proc `[]`*(sr: SequenceRecord, s: HSlice): SequenceRecord =
   ## Gets a slice of a `SequenceRecord<#SequenceRecord>`_, returning a new
-  ## SequenceRecord.
+  ## SequenceRecord that keeps the same Features and Meta, but changes the name
+  ## to show the slice.
   runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
+    let sequenceRecord = SequenceRecord(
+      name: "MyRna", chain: "ACGUGGGGU", class: scRna)
 
-    doAssert sequenceRecord[1 .. ^2].record.chain == "CGUGGGG"
-  result = SequenceRecord()
-  let newSeq = Sequence(chain: sr.record.chain[s], class: sr.record.class)
-  result.record = newSeq
-  result.name = &"{sr.name} ({s.a} .. {s.b})"
-
-  return result
+    doAssert sequenceRecord[1 .. ^2].chain == "CGUGGGG"
+    doAssert sequenceRecord[1 .. ^2].name == "MyRna (1 .. ^2)"
+  SequenceRecord(
+    chain: sr.chain[s],
+    class: sr.class,
+    features: sr.features,
+    meta: sr.meta,
+    name: &"{sr.name} ({s.a} .. {s.b})")
 
 proc `[]=`*(s: Sequence, i: int|BackwardsIndex, val: char) =
   ## Replaces a position in the chain of a `Sequence<#Sequence>`_.
@@ -189,17 +183,6 @@ proc `[]=`*(s: Sequence, i: int|BackwardsIndex, val: char) =
     doAssert rna.chain == "UCGUGGGGU"
 
   s.chain[i] = val
-
-proc `[]=`*(sr: SequenceRecord, i: int|BackwardsIndex, val: char) =
-  ## Replaces a position in the chain of a `SequenceRecord<#SequenceRecord>`_.
-  runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
-
-    sequenceRecord[0] = 'U'
-    doAssert sequenceRecord.record.chain == "UCGUGGGGU"
-
-  sr.record[i] = val
 
 proc `[]=`*[T, U](s: Sequence, x: HSlice[T, U], b: string) =
   ## Replaces a stretch in the chain of a `Sequence<#Sequence>`_.
@@ -213,20 +196,6 @@ proc `[]=`*[T, U](s: Sequence, x: HSlice[T, U], b: string) =
     doAssert rna.chain == "AATGGGTT"
   s.chain[x] = b
 
-proc `[]=`*[T, U](s: SequenceRecord, x: HSlice[T, U], b: string) =
-  ## Replaces a stretch in the chain of a `SequenceRecord<#SequenceRecord>`_.
-  runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let sequenceRecord = SequenceRecord(name: "MyRna", record: rna)
-
-    sequenceRecord[1 .. 3] = "AT"
-    doAssert rna.chain == "AATGGGGU"
-
-    rna[^2 .. ^1] = "TT"
-    doAssert rna.chain == "AATGGGTT"
-
-  s.record.chain[x] = b
-
 iterator items*(s: Sequence): char =
   ## Iterates a `Sequence<#Sequence>`_ yielding `chars` from the chain.
   runnableExamples:
@@ -239,22 +208,6 @@ iterator items*(s: Sequence): char =
     doAssert newSeq == rna.chain
 
   for c in s.chain:
-    yield c
-
-iterator items*(sr: SequenceRecord): char =
-  ## Iterates a `SequenceRecord<#SequenceRecord>`_ yielding `chars` from the
-  ## chain.
-  runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let srRna = SequenceRecord(name: "MyRna", record: rna)
-
-    var newSeq: string
-    for position in srRna:
-      newSeq.add position
-
-    doAssert newSeq == rna.chain
-
-  for c in sr.record:
     yield c
 
 iterator pairs*(s: Sequence): tuple[a: int, b: char] =
@@ -277,36 +230,13 @@ iterator pairs*(s: Sequence): tuple[a: int, b: char] =
     yield (a: i, b: c)
     inc i
 
-iterator pairs*(sr: SequenceRecord): tuple[a: int, b: char] =
-  ## Iterates a `SequenceRecord<#SequenceRecord>`_ yielding the position and
-  ## the char in a tuple.
-  runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let srRna = SequenceRecord(name: "MyRna", record: rna)
-
-    var count: seq[int]
-    var newSeq: string
-    for i, position in srRna:
-      count.add i
-      newSeq.add position
-
-    doAssert newSeq == "ACGUGGGGU"
-    doAssert count == @[0, 1, 2, 3, 4, 5, 6, 7, 8]
-
-  var i: int = 0
-  for c in sr.record:
-    yield (a: i, b: c)
-    inc i
-
-proc zip*(sr1, sr2: SequenceRecord): seq[(char, char)] =
-  ## Zips_ two `SequenceRecord<#SequenceRecord>`_ in tuples of bases.
+proc zip*(sr1, sr2: Sequence): seq[(char, char)] =
+  ## Zips_ two `Sequences<#Sequence>`_ in tuples of bases.
   ##
   ##  .. _Zips: https://nim-lang.org/docs/sequtils.html#zip%2C%2C
   runnableExamples:
-    let rna: Sequence = newRna("ACGUGGGGU")
-    let srRna = SequenceRecord(name: "MyRna", record: rna)
-    let dna: Sequence = newDna("ACGTGGGGT")
-    let srDna = SequenceRecord(name: "MyDna", record: dna)
+    let srRna = SequenceRecord(name: "MyRna", chain: "ACGUGGGGU", class: scRna)
+    let srDna = SequenceRecord(name: "MyDna", chain: "ACGTGGGGT", class: scDna)
 
     var pairs: seq[tuple[a, b: char]]
     for pair in zip(srDna, srRna):
@@ -315,7 +245,7 @@ proc zip*(sr1, sr2: SequenceRecord): seq[(char, char)] =
     doAssert pairs[0] == ('A', 'A')
     doAssert pairs[^1] == ('T', 'U')
 
-  zip(sr1.record.chain, sr2.record.chain)
+  zip(sr1.chain, sr2.chain)
 
 proc len*(s: Sequence): int =
   ## Get the length of a `Sequence<#Sequence>`_ chain.
@@ -324,16 +254,8 @@ proc len*(s: Sequence): int =
     doAssert len(newDna("AAACGGG")) == 7
   len(s.chain)
 
-proc len*(sr: SequenceRecord): int =
-  ## Get the length of a `SequenceRecord<#SequenceRecord>`_ chain.
-  runnableExamples:
-    let s = newDna("ACTGGTGGA")
-    let sequenceRecord = SequenceRecord(name: "SR1", record: s)
-    doAssert len("ACTGGTGGA") == len(sequenceRecord)
-  len(sr.record)
-
-proc guess*(s: string): Sequence =
-  ## Guesses what is a `Sequence<#Sequence>`_ (DNA, RNA or Protein), inferring
+proc guess*(s: string): SequenceClass =
+  ## Guesses what is a chain of characters (DNA, RNA or Protein), inferring
   ## from its first bases.
   ##
   ## 'N' and 'X' are not considered for the guess, even if 'N' is a valid
@@ -342,11 +264,10 @@ proc guess*(s: string): Sequence =
   ## If the class cannot be inferred, a generic Sequence (class
   ## `scSequence<#SequenceClass>`_) is returned.
   runnableExamples:
-    doAssert guess("ATCGGCATCG") == newDna("ATCGGCATCG")
-    doAssert guess("AUCGGCAUCG") == newRna("AUCGGCAUCG")
-    doAssert guess("FSYWLSCPIK") == newProtein("FSYWLSCPIK")
-  result = Sequence(chain: s, class: scSequence)
-  if s.len < 5: return  # Sequence too short to guess
+    doAssert guess("ATCGGCATCG") == scDna
+    doAssert guess("AUCGGCAUCG") == scRna
+    doAssert guess("FSYWLSCPIK") == scProtein
+  if s.len < 5: return scSequence  # Sequence too short to guess
 
   var q: string
 
@@ -360,11 +281,12 @@ proc guess*(s: string): Sequence =
   let limit: int = int(float(len(q)) * 0.9)
 
   if countIt(q, it in dnaLetters) >= limit:
-    result.class = scDna
+    return scDna
   elif countIt(q, it in rnaLetters) >= limit:
-    result.class = scRna
+    return scRna
   elif countIt(q, it in proteinLetters) >= limit:
-    result.class = scProtein
+    return scProtein
+  return scSequence
 
 proc complement*(s: Sequence): Sequence =
   ## Return a new `Dna or Rna<#Sequence>`_ with the complement sequence.

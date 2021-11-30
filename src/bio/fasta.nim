@@ -71,8 +71,8 @@ type
 
 iterator sequences*(strm: Stream):
   SequenceRecord {.inline.} =
-  ## Iterate through all the `Sequences<sequences.html#Sequence>`_ in a given
-  ## stream, yielding `SequenceRecords<sequences.html#SequenceRecord>`_.
+  ## Iterate through all the sequences in a given stream, yielding
+  ## `SequenceRecords<sequences.html#SequenceRecord>`_.
   ##
   ## .. code-block::
   ##
@@ -103,7 +103,9 @@ iterator sequences*(strm: Stream):
     if (line.startsWith('>') and sequence.len > 0) or strm.atEnd:
       if strm.atEnd:
         sequence.add line
-      yield SequenceRecord(name: move(name), record: guess(sequence.toUpperAscii))
+      yield SequenceRecord(name: move(name),
+                           chain: stripSeq(sequence.toUpperAscii),
+                           class: guess(sequence.toUpperAscii))
 
     if line.startsWith('>'):
       sequence = ""
@@ -207,7 +209,8 @@ proc `[]`*(index: Index, fileIn: File, name: string): SequenceRecord {.inline.} 
       if fileIn.endOfFile:
         sequence.add line
       return SequenceRecord(name: name,
-                            record: guess(sequence.toUpperAscii))
+                            chain: stripSeq(sequence.toUpperAscii),
+                            class: guess(sequence.toUpperAscii))
     sequence.add line
 
 proc `[]`*(index: Index, name: string): SequenceRecord {.inline.} =
@@ -305,7 +308,7 @@ proc dumpTo*(record: SequenceRecord, strm: Stream) =
   const wrapSize: int = 60
   strm.write(">", record.name)
 
-  for i, base in record.record.chain.pairs:
+  for i, base in record.chain.pairs:
     if i mod wrapSize == 0:
       strm.write("\p")
     strm.write(base)

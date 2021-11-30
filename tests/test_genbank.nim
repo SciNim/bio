@@ -19,8 +19,8 @@ suite "Test SequenceRecord operation":
     check gb[0].name == "Homo sapiens dynein, cytoplasmic, " &
                         "light intermediate polypeptide 2 (DNCLI2), mRNA."
     check len(gb[0]) == 1622
-    check gb[0].record.chain.startsWith("GGCAAGATGGCG")
-    check gb[0].record.chain.endsWith("AAAAAAAAAAAA")
+    check gb[0].chain.startsWith("GGCAAGATGGCG")
+    check gb[0].chain.endsWith("AAAAAAAAAAAA")
 
   test "Load a Genbank file and get the Features included":
     var gb: seq[SequenceRecord] = load(currentSourcePath().parentDir /

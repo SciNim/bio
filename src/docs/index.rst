@@ -99,27 +99,26 @@ your Nim-fu if you don't want to end with slower code.
 
 An example, scanning sequences in a 500 Mb Fasta file with 5000 sequences:
 
-..example-code::
+.. code-block:: nim
 
-  .. code-block:: nim
+    # Nim code
 
-      # Nim code
+    let seqs = @["A", "B", "C", "D", "E"]
 
-      let seqs = @["A", "B", "C", "D", "E"]
+    for sequence in sequences("500Mb_Database.fasta"):
+      if sequence.name in seqs:
+        echo sequence
 
-      for sequence in sequences("500Mb_Database.fasta"):
-        if sequence.name in seqs:
-          echo sequence
 
-  .. code-block:: python
+.. code-block:: python
 
-      # Python code using Biopython
+    # Python code using Biopython
 
-      seqs = ["A", "B", "C", "D", "E"]
+    seqs = ["A", "B", "C", "D", "E"]
 
-      for record in SeqIO.parse("500Mb_Database.fasta", "fasta"):
-          if record.id in seqs:
-              print(record.id)
+    for record in SeqIO.parse("500Mb_Database.fasta", "fasta"):
+        if record.id in seqs:
+            print(record.id)
 
 
 ============================================   ===========

@@ -13,8 +13,9 @@ import bio / [fasta, io]
 
 suite "Test SequenceRecord operation":
   setup:
-    var dna = Sequence(chain: "ACGTGGGGT", class: scDna)
-    var dnaRecord = SequenceRecord(record: dna, name: "Sample")
+    #var dna = Sequence(chain: "ACGTGGGGT", class: scDna)
+    var dnaRecord = SequenceRecord(
+      chain: "ACGTGGGGT", class: scDna, name: "Sample")
     var tmpOutput: (string, File) = mkstemp("tests/file_")
 
   teardown:
@@ -39,7 +40,7 @@ suite "Test SequenceRecord operation":
     check fastaFile == @[">Sample", "ACGTGGGGT"]
 
   test "Automatically wrap the long lines to 60 chars":
-    dna.chain = repeat(dna.chain, 8)
+    dnaRecord.chain = repeat(dnaRecord.chain, 8)
     let output = newFileStream(tmpOutput[1])
     dnaRecord.dumpTo(output)
 
@@ -47,7 +48,7 @@ suite "Test SequenceRecord operation":
 
     check fastaFile.len == 3
     check fastaFile[1].len == 60
-    check fastaFile[1] == dna.chain[0 .. 59]
+    check fastaFile[1] == dnaRecord.chain[0 .. 59]
 
   test "Load records from FASTA through filename":
     let records: seq[SequenceRecord] = load(currentSourcePath().parentDir /
@@ -56,9 +57,9 @@ suite "Test SequenceRecord operation":
     check records.len == 2
     check records[0].name == "First sequence"
     check records[1].name == "Second sequence"
-    check records[0].record.chain.len == 120
-    check records[1].record.chain.len == 120
-    check records[0].record.class == scDna
+    check records[0].chain.len == 120
+    check records[1].chain.len == 120
+    check records[0].class == scDna
 
   test "Load record from FASTA through iterator + filename":
     var records: seq[SequenceRecord]
@@ -69,9 +70,9 @@ suite "Test SequenceRecord operation":
     check records.len == 2
     check records[0].name == "First sequence"
     check records[1].name == "Second sequence"
-    check records[0].record.chain.len == 120
-    check records[1].record.chain.len == 120
-    check records[0].record.class == scDna
+    check records[0].chain.len == 120
+    check records[1].chain.len == 120
+    check records[0].class == scDna
 
   test "Load records from FASTA: special cases":
     test "The empty file: returns empty seq":
@@ -111,9 +112,9 @@ suite "Test SequenceRecord operation":
     check records.len == 2
     check records[0].name == "First sequence"
     check records[1].name == "Second sequence"
-    check records[0].record.chain.len == 120
-    check records[1].record.chain.len == 120
-    check records[0].record.class == scDna
+    check records[0].chain.len == 120
+    check records[1].chain.len == 120
+    check records[0].class == scDna
 
   test "Write a bunch of records as a FASTA through filehandler":
     let multiRecords: seq[SequenceRecord] = @[dnaRecord, dnaRecord]
@@ -140,9 +141,9 @@ suite "Test SequenceRecord operation":
     check records.len == 2
     check records[0].name == "First sequence"
     check records[1].name == "Second sequence"
-    check records[0].record.chain.len == 120
-    check records[1].record.chain.len == 120
-    check records[0].record.class == scDna
+    check records[0].chain.len == 120
+    check records[1].chain.len == 120
+    check records[0].class == scDna
 
   test "Read records from a compressed file through streams":
     let strm = newGzFileStream(currentSourcePath().parentDir / "test_files" / "regular.fas.gz")
@@ -154,9 +155,9 @@ suite "Test SequenceRecord operation":
     check records.len == 2
     check records[0].name == "First sequence"
     check records[1].name == "Second sequence"
-    check records[0].record.chain.len == 120
-    check records[1].record.chain.len == 120
-    check records[0].record.class == scDna
+    check records[0].chain.len == 120
+    check records[1].chain.len == 120
+    check records[0].class == scDna
 
   test "Yielded record can be modified":
     for s in sequences(currentSourcePath().parentDir / "test_files" /
@@ -185,27 +186,27 @@ suite "Operations with FASTA files":
 
   test "Access the Indexes by sequence name":
     let index: Index = newIndex(fastaF)
-    let expectedSeq = Sequence(
+    let expectedRec = SequenceRecord(
+      name: "Second sequence",
       chain: "GGGGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCGGG" &
              "TTTGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCTTT",
       class: scDna)
-    let expectedRec = SequenceRecord(name: "Second sequence",
-                                     record: expectedSeq)
 
-    check index["Second sequence"].record == expectedSeq
+    check index["Second sequence"].chain == expectedRec.chain
+    check index["Second sequence"].class == expectedRec.class
 
   test "Use the index with a file handler":
     let index: Index = newIndex(fastaF)
-    let expectedSeq = Sequence(
+    let expectedRec = SequenceRecord(
+      name: "Second sequence",
       chain: "GGGGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCGGG" &
              "TTTGCATGCATCGACATACGCATCAGCAGACGACTACGACTCAGACTACGACTCAGCTTT",
       class: scDna)
-    let expectedRec = SequenceRecord(name: "Second sequence",
-                                     record: expectedSeq)
     let fastaHandler = open(fastaF)
     defer: fastaHandler.close
 
-    check index[fastaHandler, "Second sequence"].record == expectedSeq
+    check index[fastaHandler, "Second sequence"].chain == expectedRec.chain
+    check index[fastaHandler, "Second sequence"].class == expectedRec.class
 
   test "Convenience 'items' procedure to deal with the Index.table":
     let index: Index = newIndex(fastaF)

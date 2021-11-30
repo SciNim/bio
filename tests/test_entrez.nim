@@ -19,8 +19,8 @@ suite "Test getting fasta sequences from Entrez":
       "db=nuccore&api_key=dummy_api_key_string&id=MN908947&rettype=fasta"
 
     check seq.name == "MN908947.3"
-    check seq.record.chain == "ATTAAAGGTTTATACCTTCCCAGGTAACAAACC"
-    check seq.record.class == scDna
+    check seq.chain == "ATTAAAGGTTTATACCTTCCCAGGTAACAAACC"
+    check seq.class == scDna
 
   test "Get a 404 when the Id is not found":
     let etrz = newEntrez(apiKey="dummy_api_key_string")

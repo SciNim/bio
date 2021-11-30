@@ -57,8 +57,8 @@ suite "Operations with FASTQ files":
 
     check records.len == 1
     check records[0].name == "SEQ_ID"
-    check records[0].record.chain.len == 60
-    check records[0].record.class == scDna
+    check records[0].chain.len == 60
+    check records[0].class == scDna
     check records[0].meta["quality"].kind == mkString
     check records[0].meta["quality"].metaString == expMeta.metaString
 
@@ -75,13 +75,13 @@ suite "Operations with FASTQ files":
 
     check records.len == 2
     check records[0].name == "SEQ_ID1"
-    check records[0].record.chain.len == 60
-    check records[0].record.class == scDna
+    check records[0].chain.len == 60
+    check records[0].class == scDna
     check records[0].meta["quality"].kind == mkString
     check records[0].meta["quality"].metaString.len == 60
     check records[1].name == "SEQ_ID2"
-    check records[1].record.chain.len == 60
-    check records[1].record.class == scDna
+    check records[1].chain.len == 60
+    check records[1].class == scDna
     check records[1].meta["quality"].kind == mkString
     check records[1].meta["quality"].metaString == expMeta.metaString
 
@@ -110,10 +110,10 @@ suite "Operations with FASTQ files":
 
     check records.len == 2
     check records[0].name == "SEQ_ID1"
-    check records[0].record.chain.len == 120
+    check records[0].chain.len == 120
     check records[0].meta["quality"].metaString.len == 120
     check records[1].name == "SEQ_ID2"
-    check records[1].record.chain.len == 120
+    check records[1].chain.len == 120
     check records[1].meta["quality"].metaString.len == 120
 
   test "Load the Illumina / Solexa new tags into meta data":

@@ -12,6 +12,18 @@
 ##
 ## .. _here: http://evolution.genetics.washington.edu/phylip/newick_doc.html
 ##
+## .. code-block::
+##
+##   import bio / [phylo / newick]
+##
+##   for line in "mytree.nh".lines:
+##     let tree: Tree = parse(line)
+##     echo tree.len
+##
+##     for node in tree.nodes:
+##       echo node.label, ">", nodel.length
+##
+
 import options, streams, strutils, sugar
 
 

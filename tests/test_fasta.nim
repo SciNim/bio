@@ -1,10 +1,4 @@
-import os
-import posix_utils
-import streams
-import strformat
-import strutils
-import tables
-import unittest
+import std / [os, posix_utils, streams, strformat, strutils, tables, unittest]
 
 import zip / gzipfiles
 

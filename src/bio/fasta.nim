@@ -8,24 +8,21 @@
 ## sequence, do the following operations compiled with `-d:danger` and timing
 ## with `/usr/bin/time -v`:
 ##
-##  ====================================   =========== ===============
-##   Operation                                 Time        Memory
-##  ====================================   =========== ===============
-##   newIndex("yourFasta.fas")                 1.90 s     ~6000 kbytes
-##   Index + search 1 known sequences...
-##   ... at beginning of the file              2.04 s     ~6000 kbytes
-##   ... at the middle                         2.10 s        "
-##   ... at the end                            2.07 s        "
-##   Index + search 100 random sequences       2.08 s     ~6500 kbytes
-##   Index + search all sequences              4.80 s     ~6500 kbytes
-##
-##   Load pre-saved Index...
-##   ... and search 1 known sequence           0.02 s    ~15000 kbytes
-##   ... and search 100 random sequences       0.03 s        "
-##
-##   Iterate through all sequences             2.45 s     ~4200 kbytes
-##   ====================================   ===========  =============
-##
+## | Operation                           |     Time     |     Memory     |
+## |-------------------------------------|--------------|----------------|
+## | newIndex("yourFasta.fas")           |      1.90 s  |   ~6000 kbytes |
+## | Index + search 1 known sequences... |              |                |
+## | ... at beginning of the file        |      2.04 s  |   ~6000 kbytes |
+## | ... at the middle                   |      2.10 s  |                |
+## | ... at the end                      |      2.07 s  |                |
+## | Index + search 100 random sequences |      2.08 s  |   ~6500 kbytes |
+## | Index + search all sequences        |      4.80 s  |   ~6500 kbytes |
+## |                                     |              |                |
+## | Load pre-saved Index...             |              |                |
+## | ... and search 1 known sequence     |      0.02 s  |  ~15000 kbytes |
+## | ... and search 100 random sequences |      0.03 s  |                |
+## |                                     |              |                |
+## | Iterate through all sequences       |      2.45 s  |   ~4200 kbytes |
 ##
 ## Random sequence extraction
 ## ==========================
@@ -53,10 +50,7 @@
 ## That is about 100x faster and uses 100x less memory than the equivalent
 ## `bio` code.
 ##
-import streams
-import strformat
-import strutils
-import tables
+import std / [streams, strformat, strutils, tables]
 
 import sequences
 export sequences

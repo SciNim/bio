@@ -140,20 +140,36 @@ suite "Test Newick parsing":
 
 suite "Test Newick traverses":
   setup:
-    let tree = parse("(A,B,(C,D)E)F;")
+    let tree = parse("((A1,A2)B,(C,D)E)F;")
 
   test "Breath First traverse":
     let nodesA = collect(newSeq):
-      for node in traverseBF(tree.nodes[0]):  # Node A, no children
+      for node in traverseBF(tree["A1"]):  # No children
         node.label
-    check nodesA == @["A"]
+    check nodesA == @["A1"]
 
     let nodesC = collect(newSeq):
-      for node in traverseBF(tree.nodes[4]):  # Node E, two children
+      for node in traverseBF(tree["E"]):  # Two children
         node.label
     check nodesC == @["E", "C", "D"]
 
     let nodesE = collect(newSeq):
-      for node in traverseBF(tree.nodes[5]):  # Node E, two children
+      for node in traverseBF(tree["F"]):  # Five children
         node.label
-    check nodesE == @["F", "A", "B", "E", "C", "D"]
+    check nodesE == @["F", "B", "E", "A1", "A2", "C", "D"]
+
+  test "Depth First traverse":
+    let nodesA = collect(newSeq):
+      for node in traverseDF(tree["A1"]):  # No children
+        node.label
+    check nodesA == @["A1"]
+
+    let nodesC = collect(newSeq):
+      for node in traverseDF(tree["E"]):  # Node E, two children
+        node.label
+    check nodesC == @["E", "D", "C"]
+
+    let nodesE = collect(newSeq):
+      for node in traverseDF(tree["F"]):  # Node E, two children
+        node.label
+    check nodesE == @["F", "E", "D", "C", "B", "A2", "A1"]

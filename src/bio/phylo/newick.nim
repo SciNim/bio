@@ -82,14 +82,16 @@ iterator traverseBF*(n: Node): Node =
   ## .. code-block::
   ##
   ##    
-  ##          ┌───A
+  ##            ┌─A1
+  ##          ┌A┤
+  ##          │ └─A2
   ##        ┌C┤ ┌─B1
   ##      ──┤ └B┤
   ##        │   └─B2
   ##        └─────D
   ##
-  ## Searching Breath First from node C, it yields A, B, B1 and B2, in that
-  ## order.
+  ## Searching Breath First from node C, it yields A, B, A1, A2, B1 and B2, in
+  ## that order.
   runnableExamples:
     let tree: Tree = parse("((A,(B1,B2)B)C,D)")
     var nodes: seq[string]
@@ -104,12 +106,46 @@ iterator traverseBF*(n: Node): Node =
     for child in v.children:
       q.addLast child
 
+iterator traverseDF*(n: Node): Node =
+  ## Traverses (searchs) a tree starting at node `n` and yielding nodes as
+  ## seen in https://en.wikipedia.org/wiki/Depth-first_search
+  ##
+  ## E.g. Given the tree:
+  ##
+  ## .. Don't delete the empty line below (it's a \u00a0 char), or the tree
+  ##    doesn't render
+  ## .. code-block::
+  ##
+  ##    
+  ##            ┌─A1
+  ##          ┌A┤
+  ##          │ └─A2
+  ##        ┌C┤ ┌─B1
+  ##      ──┤ └B┤
+  ##        │   └─B2
+  ##        └─────D
+  ##
+  ## Searching Depth First from node C, it yields B, B2, B1, A, A2 and A1, in
+  ## that order.
+  runnableExamples:
+    let tree: Tree = parse("((A,(B1,B2)B)C,D)")
+    var nodes: seq[string]
+    for n in traverseDF(tree["C"]):
+      nodes.add n.label
+    doAssert nodes == @["C", "B", "B2", "B1", "A"]
+
+  var s = @[n].toDeque
+  while len(s) > 0:
+    let v = s.popFirst
+    yield v
+    for child in v.children:
+      s.addFirst child
+
 proc parse*(s: string): Tree =
   ## Parses a string into a `Tree<newick.html#Tree>`_.
   ##
   runnableExamples:
     let tree: Tree = parse("((A,B),C)")
-    echo len(tree)
     doAssert len(tree) == 5  # 3 leafs + 1 branch (A,B) + 1 branch (A,B),C
     doAssert tree.nodes[0].label == "A"
 

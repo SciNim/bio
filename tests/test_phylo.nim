@@ -2,7 +2,6 @@ import options
 import os
 import sugar
 import streams
-import strutils
 import unittest
 
 import bio / [phylo / newick]
@@ -108,3 +107,41 @@ suite "Test Newick parsing":
                                              # comment
     check "brown bear" in cmts
     check "wild horse; also 'Equus ferus caballus'" in cmts
+
+  test "Check node echoing, for debug purposes":
+    let tree = parse(rootOnLeaf)
+
+    check $tree.nodes[0] == "B:0.2"
+    check $tree.nodes[3] == "(C:0.3,D:0.4)E:0.5"
+
+    let tree2 = parse(namedAll)
+    check $tree2.nodes[0] == "A"
+    check $tree2.nodes[4] == "(C,D)E"
+    check $tree2.nodes[5] == "(A,B,(C,D)E)F"
+
+  test "Find nodes by label":
+    let tree = parse(rootOnLeaf)
+    check $tree["E"] == "(C:0.3,D:0.4)E:0.5"
+
+    let tree2 = parse(namedAll)
+    check $tree2["E"] == "(C,D)E"
+
+suite "Test Newick traverses":
+  setup:
+    let tree = parse("(A,B,(C,D)E)F;")
+
+  test "Breath First traverse":
+    let nodesA = collect(newSeq):
+      for node in traverseBF(tree.nodes[0]):  # Node A, no children
+        node.label
+    check nodesA == @["A"]
+
+    let nodesC = collect(newSeq):
+      for node in traverseBF(tree.nodes[4]):  # Node E, two children
+        node.label
+    check nodesC == @["E", "C", "D"]
+
+    let nodesE = collect(newSeq):
+      for node in traverseBF(tree.nodes[5]):  # Node E, two children
+        node.label
+    check nodesE == @["F", "A", "B", "E", "C", "D"]

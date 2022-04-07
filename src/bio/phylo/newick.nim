@@ -24,22 +24,68 @@
 ##       echo node.label, ">", nodel.length
 ##
 
-import options, streams, strutils, sugar
+import std / [deques, options, strformat, streams, strutils, sugar]
 
 
 # TODO: types should go to some phylo base file
 type
-  Node* = ref object
+  NodeObj = object of RootObj
     label*, comment*: string
     length*: Option[float]
+    parent*: Option[Node]
     children*: seq[Node]
-    parent*: Node
+  Node* = ref object of NodeObj
 
-  Tree* = ref object
+  TreeObj = object of RootObj
     nodes*: seq[Node]
+  Tree* = ref object of TreeObj
+
+proc `$`*(n: Node): string =
+  let ownLabel = &"""{(block:
+    var r: string = n.label
+    if n.length.isSome: r.add ":" & $get(n.length)
+    r)}"""
+
+  if len(n.children) == 0:
+    return ownLabel
+  else:
+    return "(" & join(n.children, ",") & ")" & ownLabel
 
 proc len*(t: Tree): Natural =
   len(t.nodes)
+
+iterator traverseBF*(n: Node): Node =
+  ## Traverses (searchs) a tree starting at node `n` and yielding nodes as
+  ## seen in https://en.wikipedia.org/wiki/Breadth-first_search
+  ##
+  ## E.g. Given the tree:
+  ##
+  ## .. Don't delete the empty line below (it's a \u00a0 char), or the tree
+  ##    doesn't render
+  ## .. code-block::
+  ##
+  ##    
+  ##          ┌───A
+  ##        ┌C┤ ┌─B1
+  ##      ──┤ └B┤
+  ##        │   └─B2
+  ##        └─────D
+  ##
+  ## Searching Breath First from node C, it yields A, B, B1 and B2, in that
+  ## order.
+  runnableExamples:
+    let tree: Tree = parse("((A,(B1,B2)B)C,D)")
+    var nodes: seq[string]
+    for n in traverseBF(tree.nodes[4]):  # This is the node labeled "C"
+      nodes.add n.label
+    doAssert nodes == @["C", "A", "B", "B1", "B2"]
+
+  var q = [n].toDeque
+  while len(q) > 0:
+    let v = q.popFirst
+    yield v
+    for child in v.children:
+      q.addLast child
 
 proc parse*(s: string): Tree =
   ## Parses a string into a `Tree<newick.html#Tree>`_.
@@ -65,7 +111,7 @@ proc parse*(s: string): Tree =
       if isQuoted and seps.startsWith("''"):
         # Add double single quotes as single quotes to quoted labels.
         nodes[^1].label.add "'"
-        seps = seps[2..^1]
+        seps = seps[2 ..^ 1]
 
       for sep in seps:
         if isComment and sep != ']':
@@ -78,9 +124,9 @@ proc parse*(s: string): Tree =
           continue
         case sep:
         of '(':
-          nodes.add Node(parent: nodes[^1])
+          nodes.add Node(parent: option(nodes[^1]))
           nodes[^2].children.add(nodes[^1])
-        of ')':
+        of ')', ';':
           result.nodes.add nodes.pop
         of ',':
           result.nodes.add nodes.pop
@@ -94,12 +140,10 @@ proc parse*(s: string): Tree =
           isComment = true
         of ']':
           isComment = false
-        of ';':
-          result.nodes.add nodes.pop
         else:
           # This shouldn't happen
           discard
-    else:  # This is either a label, a comment or a length
+    else:  # This is a value (a label, a comment or a length)
       let value = collect(newSeq):
         for c in token.token:
           if not isQuoted and not isComment:

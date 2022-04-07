@@ -21,7 +21,7 @@
 ##     echo tree.len
 ##
 ##     for node in tree.nodes:
-##       echo node.label, ">", nodel.length
+##       echo node.label, ">", node.length
 ##
 
 import std / [deques, options, strformat, streams, strutils, sugar]
@@ -35,12 +35,23 @@ type
     parent*: Option[Node]
     children*: seq[Node]
   Node* = ref object of NodeObj
+    ## .. code-block::
+    ##
+    ##    label*, comment*: string
+    ##    length*: Option[float]
+    ##    parent*: Option[Node]
+    ##    children*: seq[Node]
 
   TreeObj = object of RootObj
     nodes*: seq[Node]
   Tree* = ref object of TreeObj
+    ## .. code-block::
+    ##
+    ##    nodes*: seq[Node]
 
 proc `$`*(n: Node): string =
+  ## Returns the string for the Node, including its children.
+  ##
   let ownLabel = &"""{(block:
     var r: string = n.label
     if n.length.isSome: r.add ":" & $get(n.length)
@@ -72,8 +83,10 @@ proc len*(t: Tree): Natural =
   len(t.nodes)
 
 iterator traverseBF*(n: Node): Node =
-  ## Traverses (searchs) a tree starting at node `n` and yielding nodes as
-  ## seen in https://en.wikipedia.org/wiki/Breadth-first_search
+  ## Traverses (searchs) a tree starting at node `n` and yielding nodes using
+  ## `Bread First Search`_.
+  ##
+  ## .. _`Bread First Search`: https://en.wikipedia.org/wiki/Breadth-first_search
   ##
   ## E.g. Given the tree:
   ##
@@ -107,8 +120,10 @@ iterator traverseBF*(n: Node): Node =
       q.addLast child
 
 iterator traverseDF*(n: Node): Node =
-  ## Traverses (searchs) a tree starting at node `n` and yielding nodes as
-  ## seen in https://en.wikipedia.org/wiki/Depth-first_search
+  ## Traverses (searchs) a tree starting at node `n` and yielding nodes using
+  ## `Depth First Search`_.
+  ##
+  ## .. _`Depth First Search`: https://en.wikipedia.org/wiki/Depth-first_search
   ##
   ## E.g. Given the tree:
   ##

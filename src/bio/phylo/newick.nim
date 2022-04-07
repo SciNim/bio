@@ -51,6 +51,23 @@ proc `$`*(n: Node): string =
   else:
     return "(" & join(n.children, ",") & ")" & ownLabel
 
+proc `$`*(t: Tree): string =
+  result = $(t.nodes[^1])
+  if not result.isEmptyOrWhitespace:
+    result.add ";"
+
+proc `[]`*(t: Tree, l: string): Node =
+  ## Find a Node in the Tree using the label.
+  ##
+  runnableExamples:
+    let tree: Tree = parse("((A,(B1,B2)B)C,D)")
+    doAssert $tree["B"] == "(B1,B2)B"
+
+  for node in t.nodes:
+    if node.label == l:
+      return node
+  raise newException(KeyError, "key not found: " & l)
+
 proc len*(t: Tree): Natural =
   len(t.nodes)
 

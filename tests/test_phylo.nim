@@ -119,12 +119,24 @@ suite "Test Newick parsing":
     check $tree2.nodes[4] == "(C,D)E"
     check $tree2.nodes[5] == "(A,B,(C,D)E)F"
 
+  test "Tree echoing":
+    let tree = parse(rootOnLeaf)
+    check $tree == "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;"
+
+    let tree2 = parse(noNames)
+    check $tree2 == "(,,(,));"
+
+    let tree3 = parse("")
+    check $tree3 == ""
+
   test "Find nodes by label":
     let tree = parse(rootOnLeaf)
     check $tree["E"] == "(C:0.3,D:0.4)E:0.5"
 
     let tree2 = parse(namedAll)
     check $tree2["E"] == "(C,D)E"
+    expect KeyError:
+      discard $tree2["None"]
 
 suite "Test Newick traverses":
   setup:

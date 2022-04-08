@@ -7,11 +7,7 @@ A library to work with biological sequences. Using Nim.
 How to install
 ==============
 
-In you have Nim and Nimble installed, type:
-
-    $ nimble install bio
-
-Or (version is optional):
+In you have Nim and Nimble installed, type (version is optional):
 
     $ nimble install https://github.com/SciNim/bio 0.2.7
 
